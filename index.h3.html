@@ -1,1239 +1,476 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Legal Command Center Pro - Complete Tracker with Notes</title>
-    <!-- Google Fonts & FontAwesome -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --bg: #030712;
-            --sf: #0A1120;
-            --sf-hover: #0E172A;
-            --sf2: #131F35;
-            --ln: #1E293B;
-            --ln-light: #334155;
-            --tx: #F8FAFC;
-            --mu: #94A3B8;
-            --gold: #EAB308;
-            --gold-gradient: linear-gradient(135deg, #FDE047 0%, #CA8A04 100%);
-            --r: 16px;
-        }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { height: 100%; }
-        body {
-            height: 100%;
-            display: flex;
-            overflow: hidden;
-            background: radial-gradient(circle at 10% 10%, #0F172A 0%, #030712 70%);
-            color: var(--tx);
-            font: 14px/1.6 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-        button, input, select, textarea { font: inherit; color: inherit; }
-        :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-
-        /* Sidebar Eksekutif */
-        .side {
-            width: 290px;
-            flex-shrink: 0;
-            background: linear-gradient(180deg, #020617, #070E1B 70%, #0B132B);
-            color: #94A3B8;
-            display: flex;
-            flex-direction: column;
-            z-index: 40;
-            transition: transform .25s ease;
-            border-right: 1px solid var(--ln);
-        }
-        .brand {
-            display: flex;
-            gap: 14px;
-            align-items: center;
-            padding: 24px 20px;
-            border-bottom: 1px solid rgba(255,255,255,.05);
-        }
-        .logo {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            background: var(--gold-gradient);
-            display: grid;
-            place-items: center;
-            color: #030712;
-            font-size: 18px;
-            box-shadow: 0 8px 25px rgba(234,179,8,.25);
-        }
-        .brand b { display: block; font-size: 15px; color: #fff; font-weight: 800; letter-spacing: -.01em; }
-        .brand span { font-size: 11px; color: #64748B; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; }
-        
-        #nav { flex: 1; overflow-y: auto; padding: 16px 12px; }
-        .nav-category-title {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #64748B;
-            font-weight: 800;
-            padding: 12px 14px 6px;
-        }
-        .nav {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
-            padding: 11px 14px;
-            margin-bottom: 4px;
-            border: 0;
-            border-radius: 12px;
-            background: none;
-            text-align: left;
-            font-size: 13px;
-            font-weight: 600;
-            color: #94A3B8;
-            cursor: pointer;
-            transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .nav i { width: 20px; text-align: center; font-size: 14px; transition: transform .2s; }
-        .nav:hover { background: rgba(255,255,255,.04); color: #fff; }
-        .nav:hover i { transform: scale(1.1); color: var(--gold); }
-        .nav.active {
-            background: linear-gradient(90deg, rgba(234,179,8,.15), rgba(234,179,8,.02));
-            color: #fff;
-            box-shadow: inset 3px 0 0 var(--gold);
-        }
-        .nav.active i { color: var(--gold); }
-        .nb {
-            margin-left: auto;
-            min-width: 20px;
-            text-align: center;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 99px;
-            background: rgba(255,255,255,.08);
-            color: #CBD5E1;
-        }
-        .sfoot { padding: 18px 20px; border-top: 1px solid rgba(255,255,255,.05); font-size: 11.5px; color: #64748B; background: rgba(0,0,0,.2); }
-        .sfoot b { display: block; color: #CBD5E1; font-size: 12px; margin-bottom: 3px; }
-
-        /* Workspace Utama */
-        .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-        .top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 20px 36px;
-            background: rgba(10,17,32,0.85);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--ln);
-            flex-shrink: 0;
-            z-index: 30;
-        }
-        .top h1 { font-size: 21px; font-weight: 800; letter-spacing: -.02em; color: #fff; }
-        .top p { font-size: 12.5px; color: var(--mu); margin-top: 2px; }
-        .tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-
-        #v { flex: 1; overflow-y: auto; padding: 32px 36px 56px; scroll-behavior: smooth; }
-        #v > * + * { margin-top: 28px; }
-
-        /* Kartu Panel & Grid */
-        .pn {
-            background: linear-gradient(180deg, var(--sf), #060B14);
-            border: 1px solid var(--ln);
-            border-radius: var(--r);
-            padding: 28px;
-            box-shadow: 0 15px 40px rgba(0,0,0,.4);
-            position: relative;
-            overflow: hidden;
-        }
-        .pn::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
-        }
-        .pn h2 { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; color: #fff; }
-        .pn h2::before { content: ""; width: 4px; height: 18px; border-radius: 4px; background: var(--gold); }
-        .sub { font-size: 13px; color: var(--mu); margin: 4px 0 20px; }
-        
-        .k { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .k div {
-            position: relative;
-            background: var(--sf);
-            border: 1px solid var(--ln);
-            border-radius: var(--r);
-            padding: 18px 20px;
-            overflow: hidden;
-            transition: all .25s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 20px rgba(0,0,0,.2);
-        }
-        .k div:hover { transform: translateY(-3px); border-color: var(--ln-light); box-shadow: 0 12px 30px rgba(0,0,0,.4); }
-        .k div::before { content: ""; position: absolute; left: 0; top: 0; right: 0; height: 3px; background: var(--a, #3B82F6); }
-        .k b { display: block; font-size: 26px; line-height: 1.1; font-weight: 800; margin-top: 6px; letter-spacing: -.03em; color: #fff; }
-        .k span { font-size: 10.5px; color: var(--mu); text-transform: uppercase; letter-spacing: .9px; font-weight: 700; }
-
-        .pie-charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-bottom: 28px; }
-        .bar-charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 24px; margin-bottom: 28px; }
-
-        @media(max-width: 1100px) { 
-            .bar-charts-grid { grid-template-columns: 1fr; }
-        }
-
-        /* Tombol & Elemen Form */
-        .btn {
-            border: 1px solid var(--ln);
-            background: var(--sf2);
-            border-radius: 12px;
-            padding: 10px 18px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all .2s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,.1);
-        }
-        .btn:hover { border-color: var(--ln-light); background: #1E293B; transform: translateY(-1px); }
-        .btn:active { transform: scale(.97); }
-        .btn.pri { background: var(--gold-gradient); color: #030712; border-color: transparent; font-weight: 800; box-shadow: 0 6px 20px rgba(234,179,8,.25); }
-        .btn.pri:hover { filter: brightness(1.1); transform: translateY(-1px); }
-        .btn.danger { background: rgba(239,68,68,.12); color: #F87171; border-color: rgba(239,68,68,.3); }
-        .btn.danger:hover { background: rgba(239,68,68,.25); border-color: rgba(239,68,68,.5); }
-
-        .fi {
-            border: 1px solid var(--ln);
-            background: var(--sf2);
-            border-radius: 12px;
-            padding: 10px 16px;
-            font-size: 13px;
-            color: #fff;
-            transition: all .2s;
-        }
-        .fi:hover { border-color: var(--ln-light); }
-        .fi:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 0 3px rgba(234,179,8,.15); }
-        input.fi { flex: 1; min-width: 220px; max-width: 280px; }
-
-        /* Tabel Eksekutif */
-        .tw {
-            overflow: auto;
-            max-height: calc(100vh - 420px);
-            min-height: 320px;
-            border: 1px solid var(--ln);
-            border-radius: var(--r);
-            background: var(--sf);
-        }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th {
-            position: sticky;
-            top: 0;
-            background: #050B17;
-            padding: 14px 18px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: .9px;
-            color: var(--mu);
-            border-bottom: 1px solid var(--ln);
-            white-space: nowrap;
-            z-index: 2;
-            font-weight: 700;
-        }
-        td { padding: 12px 16px; border-bottom: 1px solid var(--ln); font-size: 13px; vertical-align: middle; color: #E2E8F0; }
-        tbody tr:nth-child(even) td { background: rgba(255,255,255,.008); }
-        tbody tr { transition: background .15s; }
-        tbody tr:hover td { background: rgba(255,255,255,.03); cursor: pointer; color: #fff; }
-
-        /* Style Catatan Tambahan di Pinggir Tabel */
-        .note-box {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            max-width: 280px;
-            font-size: 11.5px;
-            line-height: 1.4;
-        }
-        .note-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-size: 10.5px;
-            font-weight: 700;
-        }
-        .note-tag.blocker { background: rgba(239,68,68,.15); color: #F87171; border: 1px solid rgba(239,68,68,.3); }
-        .note-tag.action { background: rgba(59,130,246,.15); color: #60A5FA; border: 1px solid rgba(59,130,246,.3); }
-        .doc-link-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 10px;
-            border-radius: 8px;
-            background: rgba(234,179,8,.12);
-            color: var(--gold);
-            border: 1px solid rgba(234,179,8,.3);
-            font-size: 11px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all .2s;
-        }
-        .doc-link-btn:hover { background: rgba(234,179,8,.25); color: #fff; }
-
-        /* Badge Status & Prioritas */
-        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
-        .badge.p0 { background: rgba(239,68,68,.15); color: #F87171; border: 1px solid rgba(239,68,68,.3); box-shadow: 0 0 12px rgba(239,68,68,.15); }
-        .badge.p1 { background: rgba(217,70,239,.15); color: #E879F9; border: 1px solid rgba(217,70,239,.3); }
-        .badge.p2 { background: rgba(245,158,11,.15); color: #FBBF24; border: 1px solid rgba(245,158,11,.3); }
-        .badge.p3 { background: rgba(100,116,139,.15); color: #94A3B8; border: 1px solid rgba(100,116,139,.3); }
-        
-        .badge.completed { background: rgba(16,185,129,.15); color: #34D399; border: 1px solid rgba(16,185,129,.3); box-shadow: 0 0 12px rgba(16,185,129,.15); }
-        .badge.inprogress { background: rgba(59,130,246,.15); color: #60A5FA; border: 1px solid rgba(59,130,246,.3); }
-        .badge.notstarted { background: rgba(148,163,184,.15); color: #CBD5E1; border: 1px solid rgba(148,163,184,.3); }
-        .badge.blocked { background: rgba(239,68,68,.15); color: #F87171; border: 1px solid rgba(239,68,68,.3); }
-
-        /* Modal Form */
-        .modal-bg {
-            position: fixed;
-            inset: 0;
-            background: rgba(2, 6, 23, 0.85);
-            backdrop-filter: blur(8px);
-            z-index: 100;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
-        .modal-bg.on { display: flex; }
-        .modal-card {
-            background: linear-gradient(180deg, #0B132B, #040812);
-            border: 1px solid var(--ln);
-            border-radius: 20px;
-            width: 100%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8);
-            animation: popIn .25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes popIn { from { transform: scale(.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .modal-header {
-            padding: 22px 28px;
-            border-bottom: 1px solid var(--ln);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(10,17,32,0.9);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .modal-body { padding: 28px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-        .modal-body .full { grid-column: span 2; }
-        .modal-footer { padding: 20px 28px; border-top: 1px solid var(--ln); display: flex; justify-content: space-between; align-items: center; background: rgba(5,11,23,0.8); }
-
-        .form-group label { display: block; font-size: 11.5px; font-weight: 700; color: var(--mu); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 11px 16px;
-            background: var(--bg);
-            border: 1px solid var(--ln);
-            border-radius: 12px;
-            font-size: 13.5px;
-            color: #fff;
-        }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 0 3px rgba(234,179,8,.15); }
-
-        /* Toast Notifikasi */
-        #toast {
-            position: fixed;
-            left: 50%;
-            bottom: 32px;
-            transform: translate(-50%, 24px);
-            background: #0B132B;
-            border: 1px solid var(--gold);
-            color: #fff;
-            padding: 14px 26px;
-            border-radius: 14px;
-            font-weight: 600;
-            font-size: 13.5px;
-            opacity: 0;
-            pointer-events: none;
-            transition: all .3s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 200;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        #toast.on { opacity: 1; transform: translate(-50%, 0); }
-        #toast i { color: var(--gold); }
-
-        @media(max-width: 1024px) {
-            .side { position: fixed; inset: 0 auto 0 0; transform: translateX(-100%); }
-            .side.on { transform: none; }
-            .modal-body { grid-template-columns: 1fr; }
-            .modal-body .full { grid-column: span 1; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Legal Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#050816;--sf:#0B1026;--sf2:#121A38;--ln:#1C2547;--ln2:#2B3766;--tx:#E8ECFF;--mu:#8E9ACB;--ac:#8B9CFF;--ac-ink:#050816;--side:#040612;--ok:#34D399;--info:#7DB2FF;--warn:#FBBF24;--bad:#FB7185;--idle:#B4BEE0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{display:flex;overflow:hidden;background:radial-gradient(1100px 560px at 12% -8%,#16215A 0%,rgba(22,33,90,0) 62%),radial-gradient(900px 500px at 100% 100%,#0E1740 0%,rgba(14,23,64,0) 60%),var(--bg);background-attachment:fixed;color:var(--tx);font:14px/1.55 'Plus Jakarta Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.side{width:290px;flex-shrink:0;background:linear-gradient(180deg,#040612,#060A1E 70%,#0A1130);color:#94A3B8;display:flex;flex-direction:column;z-index:60;transition:transform .25s ease;border-right:1px solid var(--ln)}
+.brand{display:flex;gap:14px;align-items:center;padding:24px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
+.logo{width:44px;height:44px;flex-shrink:0;border-radius:12px;background:linear-gradient(135deg,#A5B4FF,#6D7CF0);display:grid;place-items:center;color:#050816;box-shadow:0 8px 25px rgba(139,156,255,.3)}
+.logo svg{width:22px;height:22px}
+.brand b{display:block;font-size:15px;color:#fff;font-weight:800;letter-spacing:-.01em}
+.brand span{font-size:11px;color:#7C8AB8;font-weight:600;text-transform:uppercase;letter-spacing:.8px}
+#nav{flex:1;overflow-y:auto;padding:16px 12px}
+.grp{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#7C8AB8;font-weight:800;padding:12px 14px 6px}
+.nav{display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;margin-bottom:4px;border:0;border-radius:12px;background:none;text-align:left;font-size:13px;font-weight:600;color:#A5B2D6;transition:all .2s cubic-bezier(.16,1,.3,1)}
+.nav svg{width:18px;height:18px;flex-shrink:0;transition:transform .2s}
+.nav:hover{background:rgba(255,255,255,.05);color:#fff}
+.nav:hover svg{transform:scale(1.1);color:var(--ac)}
+.nav.on{background:linear-gradient(90deg,rgba(139,156,255,.18),rgba(139,156,255,.02));color:#fff;box-shadow:inset 3px 0 0 var(--ac)}
+.nav.on svg{color:var(--ac)}
+.nav .n{margin-left:auto;min-width:20px;text-align:center;font-size:10px;font-weight:800;padding:2px 6px;border-radius:99px;background:rgba(255,255,255,.08);color:#CBD5F5}
+.sfoot{padding:18px 20px;border-top:1px solid rgba(255,255,255,.06);font-size:11.5px;color:#7C8AB8;background:rgba(0,0,0,.25)}
+.sfoot b{display:block;color:#CBD5F5;font-size:12px;margin-bottom:3px}
+.scrim{display:none;position:fixed;inset:0;background:rgba(2,6,23,.7);z-index:55}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 28px;background:rgba(11,16,38,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--ln)}
+.top h1{font-size:20px;font-weight:800;letter-spacing:-.02em}
+.top p{font-size:12.5px;color:var(--mu)}
+.tl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hb{display:none}
+#v{flex:1;overflow-y:auto;padding:24px 28px 56px}
+#v>*+*{margin-top:20px}
+.btn{border:1px solid var(--ln2);background:var(--sf2);border-radius:10px;padding:8px 14px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:background .15s,transform .1s}
+.btn:hover{border-color:var(--ac)}
+.btn:active{transform:scale(.97)}
+.btn.pri{background:linear-gradient(135deg,#A5B4FF,#7C8CF5);color:var(--ac-ink);border-color:transparent;font-weight:800}
+.btn.dg{color:var(--bad)}
+.btn.sm{padding:5px 10px;font-size:12px}
+.sync{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;padding:6px 12px;border-radius:99px;border:1px solid var(--ln2);background:var(--sf2)}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--idle)}
+.sync.live i{background:var(--ok);box-shadow:0 0 0 4px rgba(52,211,153,.18)}
+.sync.saving i{background:var(--warn);animation:pl 1s infinite}
+.sync.local i,.sync.err i{background:var(--bad)}
+@keyframes pl{50%{opacity:.3}}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{text-align:left;background:var(--sf);border:1px solid var(--ln);border-top:3px solid var(--a);border-radius:12px;padding:14px 16px;transition:border-color .15s,transform .15s}
+.kpi:hover{transform:translateY(-2px);border-color:var(--a)}
+.kpi.on{background:var(--sf2);border-color:var(--a);box-shadow:0 0 0 1px var(--a)}
+.kpi span{display:block;font-size:12px;color:var(--mu);font-weight:600}
+.kpi b{font-size:28px;font-weight:800;letter-spacing:-.03em;color:var(--a)}
+.pn{background:linear-gradient(180deg,#0D1330,var(--sf));border:1px solid var(--ln);border-radius:14px;padding:20px}
+.pn h2{font-size:15px;font-weight:700}
+.pn .sub{font-size:12.5px;color:var(--mu);margin:2px 0 12px}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.cv{position:relative;height:200px}
+.cv.t{height:300px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fi{border:1px solid var(--ln2);background:var(--sf2);border-radius:10px;padding:8px 12px;font-size:13px;min-width:0}
+.fi:focus{border-color:var(--ac);outline:none}
+input.fi{flex:1;min-width:200px;max-width:320px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.chip{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-weight:600;padding:3px 6px 3px 10px;border-radius:99px;background:rgba(139,156,255,.14);border:1px solid rgba(139,156,255,.4)}
+.chip button{border:0;background:none;font-size:14px;line-height:1;color:var(--mu)}
+.tw{overflow:auto;border:1px solid var(--ln);border-radius:12px}
+table{width:100%;border-collapse:collapse;text-align:left}
+th{position:sticky;top:0;background:var(--sf2);padding:11px 14px;font-size:12px;color:var(--mu);border-bottom:1px solid var(--ln);white-space:nowrap;z-index:2}
+th[data-s]{cursor:pointer;user-select:none}
+th[data-s]:hover{color:var(--tx)}
+td{padding:10px 14px;border-bottom:1px solid var(--ln);font-size:13px;vertical-align:top}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:rgba(148,163,184,.08)}
+.id{font-family:ui-monospace,monospace;font-size:12px;color:var(--ac);font-weight:700;white-space:nowrap}
+.bd{display:inline-flex;font-size:12px;font-weight:700;padding:2px 10px;border-radius:99px;border:1px solid;white-space:nowrap}
+.p0{color:var(--bad);border-color:currentColor}.p1{color:#E879F9;border-color:currentColor}.p2{color:var(--warn);border-color:currentColor}.p3{color:var(--idle);border-color:currentColor}
+.s-Completed{color:var(--ok)}.s-In{color:var(--info)}.s-Not{color:var(--idle)}.s-Blocked{color:var(--bad)}
+.ss{border-radius:99px;font-weight:700;font-size:12px;padding:3px 8px;background:var(--sf2);border:1px solid var(--ln2)}
+.nt{font-size:12px;max-width:280px;color:var(--mu)}
+.nt b{font-weight:700}.nt .b{color:var(--bad)}.nt .a{color:var(--info)}
+.late{color:var(--bad);font-weight:700;font-size:12px}
+.empty{padding:40px 16px;text-align:center;color:var(--mu)}
+.mb{position:fixed;inset:0;background:rgba(2,6,23,.75);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.mb.on{display:flex}
+.mc{background:var(--sf);border:1px solid var(--ln2);border-radius:16px;width:100%;max-width:720px;max-height:90vh;overflow-y:auto}
+.mc.s{max-width:420px}
+.mh,.mf{padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mh{border-bottom:1px solid var(--ln);position:sticky;top:0;background:var(--sf)}
+.mf{border-top:1px solid var(--ln)}
+.mh h3{font-size:16px}
+.mbd{padding:20px 22px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mbd .f{grid-column:span 2}
+.fg label,.dl dt{display:block;font-size:12px;font-weight:700;color:var(--mu);margin-bottom:4px}
+.fg input,.fg select,.fg textarea{width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--ln2);border-radius:10px;font-size:13.5px}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--ac);outline:none}
+.dl dd{font-size:13.5px;font-weight:600;word-break:break-word}
+.tt{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--sf2);border:1px solid var(--ac);padding:11px 20px;border-radius:12px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;z-index:200}
+.tt{display:flex;align-items:center;gap:12px}.tt.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+@media(max-width:1000px){.side{position:fixed;inset:0 auto 0 0;transform:translateX(-100%)}.side.on{transform:none}.side.on~.scrim{display:block}.hb{display:inline-flex}.top,#v{padding-left:16px;padding-right:16px}.mbd{grid-template-columns:1fr}.mbd .f{grid-column:span 1}}
+.pg{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px;font-size:12.5px;color:var(--mu)}
+tr:focus-visible{outline:2px solid var(--ac);outline-offset:-2px}
+@media(max-width:700px){thead{display:none}table,tbody,tr,td{display:block;width:100%}tr{padding:12px 14px;border-bottom:1px solid var(--ln)}td{border:0;padding:3px 0}td[data-l]::before{content:attr(data-l);display:block;font-size:11px;color:var(--mu);font-weight:700}.nt{max-width:none}}
+@media print{.side,.tl,.bar,.scrim{display:none!important}body{overflow:visible;display:block}#v{overflow:visible}.tw{max-height:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
-
-    <!-- Sidebar Navigasi -->
-    <aside class="side" id="side">
-        <div class="brand">
-            <div class="logo"><i class="fa-solid fa-scale-balanced"></i></div>
-            <div>
-                <b>Command Center</b>
-                <span>Executive Legal Suite</span>
-            </div>
-        </div>
-        <div id="nav">
-            <div class="nav-category-title">Menu Utama</div>
-            <button class="nav active" onclick="switchTab('Dashboard Utama')"><i class="fa-solid fa-chart-pie"></i> Dashboard Utama <span id="nb-dash" class="nb">90</span></button>
-            
-            <div class="nav-category-title">Kerangka Hukum</div>
-            <button class="nav" onclick="switchTab('Contract Management')"><i class="fa-solid fa-file-contract"></i> Contract Management <span id="nb-contract" class="nb">0</span></button>
-            <button class="nav" onclick="switchTab('Compliance & Regulatory / Affairs')"><i class="fa-solid fa-shield-halved"></i> Compliance & Regulatory <span id="nb-comp" class="nb">0</span></button>
-            <button class="nav" onclick="switchTab('Litigation & Dispute Resolution')"><i class="fa-solid fa-gavel"></i> Litigation & Dispute <span id="nb-lit" class="nb">0</span></button>
-            <button class="nav" onclick="switchTab('Corporate Governance')"><i class="fa-solid fa-briefcase"></i> Corporate Governance <span id="nb-corp" class="nb">0</span></button>
-            <button class="nav" onclick="switchTab('Risk Management')"><i class="fa-solid fa-triangle-exclamation"></i> Risk Management <span id="nb-risk" class="nb">0</span></button>
-            <button class="nav" onclick="switchTab('Asset')"><i class="fa-solid fa-building"></i> Asset <span id="nb-asset" class="nb">0</span></button>
-        </div>
-        <div class="sfoot">
-            <b id="dataCountLabel">Database Aktif</b> Catatan Kendala & Action Plan Aktif.
-        </div>
-    </aside>
-
-    <!-- Konten Utama -->
-    <div class="main">
-        <header class="top">
-            <div class="flex items-center gap-3">
-                <button class="btn md:hidden" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-                <div>
-                    <h1 id="pageTitle">Dashboard Utama</h1>
-                    <p id="pageSub">Monitoring 90 berkas hukum lengkap dengan Catatan Blocker & Action Plan.</p>
-                </div>
-            </div>
-            <div class="tools">
-                <button onclick="openFormModal('add')" class="btn pri"><i class="fa-solid fa-plus"></i> Tugas Baru</button>
-                <button onclick="resetDataStorage()" class="btn danger" title="Reset ke data awal"><i class="fa-solid fa-rotate-right"></i> Reset Data</button>
-                <button onclick="exportToCSV()" class="btn"><i class="fa-solid fa-download"></i> Ekspor CSV</button>
-                <button onclick="window.print()" class="btn"><i class="fa-solid fa-print"></i></button>
-            </div>
-        </header>
-
-        <main id="v"></main>
+<aside class="side" id="side">
+  <div class="brand"><div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg></div><div><b>Command Center</b><span>Executive Legal Suite</span></div></div>
+  <nav id="nav" aria-label="Kerangka hukum"></nav>
+  <div class="sfoot" id="sfoot">Memuat data...</div>
+</aside>
+<div class="scrim" id="scrim"></div>
+<div class="main">
+  <header class="top">
+    <div class="tl">
+      <button class="btn hb" id="hb" aria-label="Buka menu">Menu</button>
+      <div><h1 id="ttl">Dashboard Utama</h1><p id="sub"></p></div>
     </div>
-
-    <!-- Modal Form (Tambah & Edit Data) -->
-    <div id="formModal" class="modal-bg">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="flex items-center gap-2">
-                    <i id="formModalIcon" class="fa-solid fa-plus-circle text-amber-400 text-lg"></i>
-                    <h3 id="formModalTitle" class="font-bold text-base">Tambah Tugas Hukum</h3>
-                </div>
-                <button onclick="closeFormModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <form id="taskForm" onsubmit="handleFormSubmit(event)">
-                <input type="hidden" id="editTaskId">
-                <div class="modal-body">
-                    <div class="form-group full">
-                        <label>Nama Tugas / Dokumen *</label>
-                        <input type="text" id="inpName" required placeholder="Contoh: Pengajuan Pembuatan Somasi">
-                    </div>
-                    <div class="form-group">
-                        <label>Work Type</label>
-                        <select id="inpWorkType">
-                            <option value="Harian/Ad-hoc">Harian/Ad-hoc</option>
-                            <option value="Project">Project</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Unit Bisnis (Business Unit)</label>
-                        <select id="inpBU">
-                            <option value="PT EEN">PT EEN</option>
-                            <option value="PT Eigerindo MPI">PT Eigerindo MPI</option>
-                            <option value="PT KIND">PT KIND</option>
-                            <option value="PT Dua Puluh Tiga">PT Dua Puluh Tiga</option>
-                            <option value="PT 72425">PT 72425</option>
-                            <option value="PT Eksonindo MPI">PT Eksonindo MPI</option>
-                            <option value="Owner & Family">Owner & Family</option>
-                            <option value="Others">Others</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Kerangka Hukum *</label>
-                        <select id="inpFramework">
-                            <option value="Contract Management">Contract Management</option>
-                            <option value="Compliance & Regulatory / Affairs">Compliance & Regulatory / Affairs</option>
-                            <option value="Litigation & Dispute Resolution">Litigation & Dispute Resolution</option>
-                            <option value="Corporate Governance">Corporate Governance</option>
-                            <option value="Risk Management">Risk Management</option>
-                            <option value="Asset">Asset</option>
-                            <option value="Surat Keluar">Surat Keluar</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Prioritas</label>
-                        <select id="inpPriority">
-                            <option value="P0 - Urgent/Critical">P0 - Urgent/Critical</option>
-                            <option value="P1 - High">P1 - High</option>
-                            <option value="P2 - Medium" selected>P2 - Medium</option>
-                            <option value="P3 - Low">P3 - Low</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select id="inpStatus">
-                            <option value="Completed" selected>Completed</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Not Started">Not Started</option>
-                            <option value="Blocked">Blocked</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Tanggal Permintaan</label>
-                        <input type="date" id="inpRequestDate">
-                    </div>
-                    <div class="form-group">
-                        <label>Target Selesai</label>
-                        <input type="date" id="inpTarget">
-                    </div>
-                    
-                    <!-- Form Input Catatan Tambahan -->
-                    <div class="form-group full">
-                        <label>Blocker Reason (Catatan Kendala)</label>
-                        <textarea id="inpBlocker" rows="2" placeholder="Tuliskan kendala / hambatan jika ada..."></textarea>
-                    </div>
-                    <div class="form-group full">
-                        <label>Action Plan (Rencana Tindak Lanjut)</label>
-                        <textarea id="inpAction" rows="2" placeholder="Tuliskan rencana penyelesaian masalah..."></textarea>
-                    </div>
-                    <div class="form-group full">
-                        <label>Link Berkas / Drive Document</label>
-                        <input type="text" id="inpDocLink" placeholder="Masukkan nama berkas / URL Drive...">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" onclick="closeFormModal()" class="btn">Batal</button>
-                    <button type="submit" class="btn pri"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Data Secara Real-Time</button>
-                </div>
-            </form>
-        </div>
+    <div class="tl">
+      <span class="sync" id="sync" role="status"><i></i><span>Menghubungkan...</span></span>
+      <button class="btn pri" id="add">+ Tugas baru</button>
+      <button class="btn" id="imp">Impor Excel</button><input type="file" id="impf" accept=".xlsx,.xls,.csv" hidden><button class="btn" id="csv">Ekspor CSV</button>
+      <button class="btn" id="prn">Cetak</button>
     </div>
+  </header>
+  <main id="v"></main>
+</div>
 
-    <!-- Modal Detail Tugas -->
-    <div id="detailModal" class="modal-bg">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="flex items-center gap-3">
-                    <span id="detPriority" class="badge p1">P1</span>
-                    <div>
-                        <span id="detId" class="text-xs text-amber-400 font-mono">LEG-202605-0001</span>
-                        <h3 id="detTitle" class="font-bold text-base text-white">Judul Tugas</h3>
-                    </div>
-                </div>
-                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <div class="modal-body" style="grid-template-columns: repeat(2, 1fr);">
-                <div class="form-group">
-                    <label>Work Type</label>
-                    <p id="detWorkType" class="text-sm font-semibold mt-1 text-white">-</p>
-                </div>
-                <div class="form-group">
-                    <label>Unit Bisnis</label>
-                    <p id="detBU" class="text-sm font-semibold mt-1 text-white">-</p>
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <p id="detStatus" class="text-sm font-semibold mt-1 text-white">-</p>
-                </div>
-                <div class="form-group">
-                    <label>Kerangka Hukum</label>
-                    <p id="detFw" class="text-sm font-semibold mt-1 text-white">-</p>
-                </div>
-                <div class="form-group">
-                    <label>Tanggal Permintaan</label>
-                    <p id="detReqDate" class="text-sm font-semibold mt-1 text-white">-</p>
-                </div>
-                <div class="form-group">
-                    <label>Target Selesai</label>
-                    <p id="detTarget" class="text-sm font-semibold mt-1 text-white">-</p>
-                </div>
+<div class="mb" id="fm"><form class="mc" id="form">
+  <div class="mh"><h3 id="fmT">Tugas baru</h3><button type="button" class="btn sm" data-close>Tutup</button></div>
+  <input type="hidden" id="fId">
+  <div class="mbd">
+    <div class="fg f"><label for="fName">Nama tugas / dokumen *</label><input id="fName" required placeholder="Contoh: Pembuatan somasi"></div>
+    <div class="fg"><label for="fWt">Jenis pekerjaan</label><select id="fWt"><option>Harian/Ad-hoc</option><option>Project</option></select></div>
+    <div class="fg"><label for="fBu">Unit bisnis</label><select id="fBu"></select></div>
+    <div class="fg"><label for="fFw">Kerangka hukum</label><select id="fFw"></select></div>
+    <div class="fg"><label for="fPr">Prioritas</label><select id="fPr"><option>P0 - Urgent/Critical</option><option>P1 - High</option><option selected>P2 - Medium</option><option>P3 - Low</option></select></div>
+    <div class="fg"><label for="fSt">Status</label><select id="fSt"><option>Not Started</option><option>In Progress</option><option>Blocked</option><option>Completed</option></select></div>
+    <div class="fg"><label for="fRd">Tanggal permintaan</label><input type="date" id="fRd"></div>
+    <div class="fg"><label for="fTg">Target selesai</label><input type="date" id="fTg"></div>
+    <div class="fg f"><label for="fBl">Kendala (blocker)</label><textarea id="fBl" rows="2"></textarea></div>
+    <div class="fg f"><label for="fAc">Rencana tindak lanjut</label><textarea id="fAc" rows="2"></textarea></div>
+    <div class="fg f"><label for="fDl">Tautan berkas / Drive</label><input id="fDl" placeholder="https://..."></div>
+  </div>
+  <div class="mf"><button type="button" class="btn" data-close>Batal</button><button class="btn pri" type="submit">Simpan</button></div>
+</form></div>
 
-                <div class="form-group full" style="border-top:1px solid var(--ln); padding-top:16px;">
-                    <label>Blocker Reason (Kendala)</label>
-                    <p id="detBlocker" class="text-sm text-rose-300 bg-rose-950/30 p-3 rounded-lg border border-rose-900/50 mt-1">-</p>
-                </div>
-                <div class="form-group full">
-                    <label>Action Plan (Rencana Tindak Lanjut)</label>
-                    <p id="detAction" class="text-sm text-blue-300 bg-blue-950/30 p-3 rounded-lg border border-blue-900/50 mt-1">-</p>
-                </div>
-                <div class="form-group full">
-                    <label>Document Link</label>
-                    <p id="detDocLink" class="text-sm text-amber-300 mt-1">-</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <div class="flex gap-2">
-                    <button id="btnEditFromDetail" onclick="" class="btn"><i class="fa-solid fa-pen-to-square text-amber-400"></i> Edit Data</button>
-                    <button id="btnDeleteFromDetail" onclick="" class="btn danger"><i class="fa-solid fa-trash"></i> Hapus</button>
-                </div>
-                <button onclick="closeDetailModal()" class="btn">Tutup</button>
-            </div>
-        </div>
+<div class="mb" id="dm"><div class="mc">
+  <div class="mh"><div><span class="id" id="dId"></span><h3 id="dT"></h3></div><button class="btn sm" data-close>Tutup</button></div>
+  <dl class="mbd dl" id="dBody"></dl>
+  <div class="mf"><div class="bar"><button class="btn" id="dEdit">Edit</button><button class="btn dg" id="dDel">Hapus</button></div><button class="btn" data-close>Tutup</button></div>
+</div></div>
+
+<div class="mb" id="cm"><div class="mc s">
+  <div class="mh"><h3>Hapus tugas?</h3></div>
+  <p class="mbd" style="display:block" id="cT"></p>
+  <div class="mf"><button class="btn" data-close>Batal</button><button class="btn dg" id="cOk">Hapus</button></div>
+</div></div>
+<div class="mb" id="im"><div class="mc"><div class="mh"><h3>Pratinjau impor</h3><button class="btn sm" data-close>Tutup</button></div><div class="mbd" style="display:block" id="imB"></div><div class="mf"><button class="btn" data-close>Batal</button><button class="btn pri" id="imOk">Impor</button></div></div></div>
+<div class="tt" id="tt" role="status"></div>
+
+<script>
+const FW=['Contract Management','Compliance & Regulatory / Affairs','Litigation & Dispute Resolution','Corporate Governance','Risk Management','Asset','Surat Keluar'];
+const BUS=['PT EEN','PT Eigerindo MPI','PT KIND','PT Dua Puluh Tiga','PT 72425','PT Eksonindo MPI','Owner & Family','Others'];
+const ST=['Completed','In Progress','Not Started','Blocked'];
+const STC={'Completed':'#10B981','In Progress':'#3B82F6','Not Started':'#64748B','Blocked':'#EF4444'};
+const PR=['P0','P1','P2','P3'];
+const PRL={P0:'P0 Urgent',P1:'P1 High',P2:'P2 Medium',P3:'P3 Low'};
+const PRC={P0:'#EF4444',P1:'#D946EF',P2:'#F59E0B',P3:'#64748B'};
+const PAL=['#6366F1','#EC4899','#14B8A6','#F97316','#84CC16','#A855F7','#8B9CFF','#06B6D4'];
+const LS='legal_tracker_v3';
+const $=s=>document.querySelector(s);
+const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dash=v=>!v||v==='-';
+const stKey=s=>'s-'+s.split(' ')[0];
+
+let page=0;const PS=25;let tasks=[],db=null,canWrite=true,tab='all',f={status:'',pr:'',bu:'',q:'',late:false},sort={k:'taskId',d:-1},charts={};
+
+/* ---------- penyimpanan real-time ---------- */
+function setSync(state,txt){const e=$('#sync');e.className='sync '+state;e.lastElementChild.textContent=txt}
+const SEED=[{"taskId":"LEG-202605-0001","workType":"Harian/Ad-hoc","taskName":"Pengajuan Pembuatan T SHIRT Polda Jabar","businessUnit":"Others","legalFramework":"Corporate Governance","priority":"P3 - Low","status":"Completed","requestDate":"2026-05-15","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0002","workType":"Harian/Ad-hoc","taskName":"Somasi RTH tanah Trinity","businessUnit":"Others","legalFramework":"Litigation & Dispute Resolution","priority":"P1 - High","status":"Completed","requestDate":"2026-05-18","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0003","workType":"Harian/Ad-hoc","taskName":"Penandatanganan perubahan kegiatan Usaha SBU","businessUnit":"PT 72425","legalFramework":"Compliance & Regulatory / Affairs","priority":"P1 - High","status":"Completed","requestDate":"2026-05-28","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0004","workType":"Harian/Ad-hoc","taskName":"Kasus TPPU","businessUnit":"PT Eigerindo MPI","legalFramework":"Litigation & Dispute Resolution","priority":"P1 - High","status":"Completed","requestDate":"2026-05-18","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0005","workType":"Harian/Ad-hoc","taskName":"Peralihan PT Supplier PT KIND","businessUnit":"PT KIND","legalFramework":"Corporate Governance","priority":"P1 - High","status":"Completed","requestDate":"2026-05-18","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0006","workType":"Harian/Ad-hoc","taskName":"Pengurusan ruko Semarang PT 23","businessUnit":"PT Dua Puluh Tiga","legalFramework":"Litigation & Dispute Resolution","priority":"P1 - High","status":"Completed","requestDate":"2026-05-26","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0007","workType":"Harian/Ad-hoc","taskName":"Resume terkait kejelasan pembagian Fungsi PT KIND","businessUnit":"PT 72425","legalFramework":"Corporate Governance","priority":"P1 - High","status":"Completed","requestDate":"2026-05-28","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0008","workType":"Harian/Ad-hoc","taskName":"Wanprestasi Supplier PT 23","businessUnit":"PT Dua Puluh Tiga","legalFramework":"Litigation & Dispute Resolution","priority":"P1 - High","status":"Completed","requestDate":"2026-05-26","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0009","workType":"Harian/Ad-hoc","taskName":"Pengurusan Piutang B2B PT 23","businessUnit":"PT Dua Puluh Tiga","legalFramework":"Litigation & Dispute Resolution","priority":"P1 - High","status":"Completed","requestDate":"2026-05-13","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0010","workType":"Harian/Ad-hoc","taskName":"Penyalahgunaan Dana Pajak dan Piutang SAMUDRA","businessUnit":"PT KIND","legalFramework":"Litigation & Dispute Resolution","priority":"P1 - High","status":"Completed","requestDate":"2026-05-25","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0011","workType":"Harian/Ad-hoc","taskName":"Pengurusan Tanah Sragen","businessUnit":"PT Eksonindo MPI","legalFramework":"Compliance & Regulatory / Affairs","priority":"P2 - Medium","status":"Completed","requestDate":"2026-05-26","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202610-0012","workType":"Harian/Ad-hoc","taskName":"Penjelasan terkait Sertipikat HALAL","businessUnit":"PT KIND","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"-","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0013","workType":"Harian/Ad-hoc","taskName":"PKS KIND dengan EMPI","businessUnit":"PT Eksonindo MPI","legalFramework":"Contract Management","priority":"P0 - Urgent/Critical","status":"Completed","requestDate":"2026-05-28","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0014","workType":"Harian/Ad-hoc","taskName":"PKS PT 23 dengan Eksonindo","businessUnit":"PT Dua Puluh Tiga","legalFramework":"Surat Keluar","priority":"P1 - High","status":"Completed","requestDate":"2026-05-28","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202606-0015","workType":"Harian/Ad-hoc","taskName":"Penanganan Kasus Kehilangan EAS SUMATRA","businessUnit":"PT Eigerindo MPI","legalFramework":"Litigation & Dispute Resolution","priority":"P1 - High","status":"Completed","requestDate":"2026-06-02","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202606-0016","workType":"Harian/Ad-hoc","taskName":"BPOM Pembuatan Parfum","businessUnit":"PT KIND","legalFramework":"Compliance & Regulatory / Affairs","priority":"P1 - High","status":"Completed","requestDate":"2026-06-02","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0017","workType":"Harian/Ad-hoc","taskName":"Pembuatan Form FCCA untuk Supllier","businessUnit":"PT KIND","legalFramework":"Risk Management","priority":"P2 - Medium","status":"Completed","requestDate":"2026-05-28","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0018","workType":"Harian/Ad-hoc","taskName":"Penyelesaian sengketa hukum Vendor CSJ di Polda Jabar","businessUnit":"PT KIND","legalFramework":"Litigation & Dispute Resolution","priority":"P2 - Medium","status":"Completed","requestDate":"2026-05-28","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202606-0019","workType":"Harian/Ad-hoc","taskName":"Penyelesaian kasus sexsual Harrasement","businessUnit":"PT Eigerindo MPI","legalFramework":"Compliance & Regulatory / Affairs","priority":"P1 - High","status":"Completed","requestDate":"2026-06-03","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202606-0020","workType":"Harian/Ad-hoc","taskName":"Penyelesaian kasus Asuransi","businessUnit":"PT Eigerindo MPI","legalFramework":"Contract Management","priority":"P1 - High","status":"Completed","requestDate":"2026-06-05","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202606-0021","workType":"Harian/Ad-hoc","taskName":"Jual Beli Store Radio Dalam","businessUnit":"PT Eigerindo MPI","legalFramework":"Asset","priority":"P1 - High","status":"In Progress","requestDate":"2026-06-08","targetCompletion":"2026-06-09","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202606-0022","workType":"Harian/Ad-hoc","taskName":"Pembuatan langkah Do and Don’t terkait music di materi Promosi","businessUnit":"PT 72425","legalFramework":"Risk Management","priority":"P1 - High","status":"In Progress","requestDate":"2026-06-08","targetCompletion":"2026-06-09","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202609-0023","workType":"Harian/Ad-hoc","taskName":"Penyelesaian Administrasi CSR Bogor","businessUnit":"PT EEN","legalFramework":"Compliance & Regulatory / Affairs","priority":"P1 - High","status":"In Progress","requestDate":"2026-09-05","targetCompletion":"2026-09-30","blockerReason":"Menunggu Draft yang dibikin oleh Pemkab terkait CSR / Hibah helikopter","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0024","workType":"Project","taskName":"Penyedian Dokumen Pendukung Perizinan Gereja","businessUnit":"Others","legalFramework":"Compliance & Regulatory / Affairs","priority":"P3 - Low","status":"Completed","requestDate":"2026-05-15","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0025","workType":"Project","taskName":"Dokumen PERTEK","businessUnit":"Others","legalFramework":"Compliance & Regulatory / Affairs","priority":"P1 - High","status":"Completed","requestDate":"2026-05-18","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0026","workType":"Project","taskName":"Koordinasi PUPR dan Tata Ruang","businessUnit":"Others","legalFramework":"Compliance & Regulatory / Affairs","priority":"P1 - High","status":"Completed","requestDate":"2026-05-28","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0027","workType":"Project","taskName":"Koordinasi Front Kerukunan Umat Beragama (Pengumpulan 100 KTP)","businessUnit":"Others","legalFramework":"Compliance & Regulatory / Affairs","priority":"P1 - High","status":"Completed","requestDate":"2026-05-18","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202607-0028","workType":"Project","taskName":"Dokumen Persyaratan PBG","businessUnit":"Others","legalFramework":"Compliance & Regulatory / Affairs","priority":"P1 - High","status":"Blocked","requestDate":"2026-07-01","targetCompletion":"2028-08-31","blockerReason":"Dari pihak kontraktor terkendala masalah perpanjangan sertipikat ahli","actionPlan":"Melakukan koordinasi dengan pihak PTSP untuk keringanan terkait sertipikat ahli cukup hanya nomor register perpanjangan nya saja","docLink":"-"},{"taskId":"LEG-202609-0029","workType":"Project","taskName":"Dokumen PBG Terbit","businessUnit":"Others","legalFramework":"Compliance & Regulatory / Affairs","priority":"P1 - High","status":"Not Started","requestDate":"2026-09-15","targetCompletion":"2026-09-30","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0030","workType":"Project","taskName":"Persetujuan Kantor Daerah","businessUnit":"Owner & Family","legalFramework":"Compliance & Regulatory / Affairs","priority":"P1 - High","status":"Completed","requestDate":"2026-05-26","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0031","workType":"Project","taskName":"Persetujuan Kantor Pusat","businessUnit":"Owner & Family","legalFramework":"Compliance & Regulatory / Affairs","priority":"P1 - High","status":"Completed","requestDate":"2026-05-13","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0032","workType":"Project","taskName":"Penunjukan Konsultan Pembongkaran","businessUnit":"Owner & Family","legalFramework":"Compliance & Regulatory / Affairs","priority":"P2 - Medium","status":"Completed","requestDate":"2026-05-26","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202608-0033","workType":"Project","taskName":"Persetujuan Dokumen Izin Prinsip","businessUnit":"Owner & Family","legalFramework":"Compliance & Regulatory / Affairs","priority":"P1 - High","status":"Blocked","requestDate":"2026-08-01","targetCompletion":"2026-09-30","blockerReason":"Dari Pihak BPN meminta proses lewat OSS namun PLN keberatan tanah BUMN sebelum 2021 dapat memakai PERTEK","actionPlan":"Memfasilitasi pertemuan pihak PLN dengan Kepala Kantor BPN Kota untuk mencari alternatif terbaik","docLink":"-"},{"taskId":"LEG-202610-0034","workType":"Project","taskName":"Pembuatan Somasi","businessUnit":"Owner & Family","legalFramework":"Litigation & Dispute Resolution","priority":"P2 - Medium","status":"Completed","requestDate":"-","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202610-0035","workType":"Project","taskName":"Sosialisasi dan Komunikasi","businessUnit":"Owner & Family","legalFramework":"Litigation & Dispute Resolution","priority":"P1 - High","status":"Completed","requestDate":"-","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202605-0036","workType":"Project","taskName":"Pembongkaran","businessUnit":"Owner & Family","legalFramework":"Litigation & Dispute Resolution","priority":"P1 - High","status":"Completed","requestDate":"2026-05-28","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202609-0037","workType":"Project","taskName":"Kelengkapan Dokumen","businessUnit":"PT Eigerindo MPI","legalFramework":"Asset","priority":"P1 - High","status":"Completed","requestDate":"2026-09-02","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202609-0038","workType":"Project","taskName":"Penawaran Biaya Notaris","businessUnit":"PT Eigerindo MPI","legalFramework":"Asset","priority":"P2 - Medium","status":"In Progress","requestDate":"2026-09-15","targetCompletion":"2026-09-23","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202609-0039","workType":"Project","taskName":"PPJB","businessUnit":"PT Eigerindo MPI","legalFramework":"Compliance & Regulatory / Affairs","priority":"P2 - Medium","status":"Not Started","requestDate":"2026-09-29","targetCompletion":"2026-09-29","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202610-0040","workType":"Project","taskName":"Pelepasan Hak","businessUnit":"PT Eigerindo MPI","legalFramework":"Compliance & Regulatory / Affairs","priority":"P1 - High","status":"Not Started","requestDate":"-","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202610-0041","workType":"Project","taskName":"Permohonan Sertipikasi","businessUnit":"PT Eigerindo MPI","legalFramework":"Compliance & Regulatory / Affairs","priority":"P1 - High","status":"Not Started","requestDate":"-","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202610-0042","workType":"Project","taskName":"Sertipikat balik nama","businessUnit":"PT Eigerindo MPI","legalFramework":"Asset","priority":"P1 - High","status":"Not Started","requestDate":"-","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202610-0043","workType":"Harian/Ad-hoc","taskName":"DELH","businessUnit":"PT Eigerindo MPI","legalFramework":"Compliance & Regulatory / Affairs","priority":"P2 - Medium","status":"Completed","requestDate":"-","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"-"},{"taskId":"LEG-202505-0044","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT GREENPROSA ADIKARA NUSA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-05-21","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"019-NDA PT EEN X PT GREENPROSA ADIKARA NUSA.pdf"},{"taskId":"LEG-202508-0045","workType":"Harian/Ad-hoc","taskName":"PT EEN X PT Tukar Pikiran Sebaya","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-08-15","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"021-NDA PT EEN X PT Tukar Pikiran Sebaya.docx.pdf"},{"taskId":"LEG-202508-0046","workType":"Harian/Ad-hoc","taskName":"PT EEN X PT Dektos Digital Corbuzier","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-08-15","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"022-NDA PT EEN X PT Dektos Digital Corbuzier.pdf"},{"taskId":"LEG-202508-0047","workType":"Harian/Ad-hoc","taskName":"PT EEN X Iskandar(MhSGeo)","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-08-15","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"023-NDA PT EEN X Iskandar(MhSGeo).pdf"},{"taskId":"LEG-202508-0048","workType":"Harian/Ad-hoc","taskName":"PT EEn X Agnes Abigail","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-08-28","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"024-NDA PT EEN X Agnes Abigail (WIUI).docx.pdf"},{"taskId":"LEG-202509-0049","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X Ruth Deasy Natalia (Info Bogor)","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-09-01","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"025-NDA PT EEN X Ruth Deasy Natalia (Info Bogor).pdf"},{"taskId":"LEG-202509-0050","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X Muhammad Taufiq Rahman (Info Jawabarat)","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-09-01","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"026-NDA PT EEN X Muhammad Taufiq Rahman (Info Jawabarat).pdf"},{"taskId":"LEG-202509-0051","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X Miftahul Khoer(Bogor Update)","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-09-01","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"027-NDA PT EEN X Miftahul Khoer(Bogor Update).pdf"},{"taskId":"LEG-202509-0052","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT Tribun Berita Online","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-09-01","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"028-NDA PT EEN X PT Tribun Berita Online.pdf"},{"taskId":"LEG-202509-0053","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT Genesis Garuda Asia","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-09-18","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"029-NDA PT EEN X PT Genesis Garuda Asia.pdf"},{"taskId":"LEG-202509-0054","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X Khana Salsabila Wiguna (Bogorpisan)","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-09-01","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"030-NDA PT EEN X Khana Salsabila Wiguna (Bogorpisan).pdf"},{"taskId":"LEG-202509-0055","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT Bogor Mediapolitan","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-09-01","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"031-NDA PT EEN X PT Bogor Mediapolitan.pdf"},{"taskId":"LEG-202509-0056","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT Jaring Teguh Perkasa","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-09-03","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"032-NDA PT EEN X PT Jaring Teguh Perkasa (Bogordaily).pdf"},{"taskId":"LEG-202509-0057","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT Trans Digital Media","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-09-29","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"034-NDA PT EEN X PT Trans Digital Media (Detikcom).pdf"},{"taskId":"LEG-202510-0058","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X MELIA ZULIA EPENDI","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-10-01","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"037-NDA PT EEN X MELIA ZULIA EPENDI.pdf"},{"taskId":"LEG-202510-0059","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X EGI PUTRA PRATAMA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-10-01","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"038-NDA PT EEN X EGI PUTRA PRATAMA.pdf"},{"taskId":"LEG-202510-0060","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT Sebumi Berbagi Inspirasi","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-10-03","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"039-NDA PT EEN X PT Sebumi Berbagi Inspirasi.pdf"},{"taskId":"LEG-202509-0061","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT TEKNOLOGI LINTAS NEGERI ABADI","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-09-01","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"041-NDA PT EEN X PT TEKNOLOGI LINTAS NEGERI ABA.pdf"},{"taskId":"LEG-202510-0062","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X YAYASAN JEJAK ALAM NUSANTARA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-10-21","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"044-NDA PT EEN X YAYASAN JEJAK ALAM NUSANTARA.pdf"},{"taskId":"LEG-202510-0063","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT MEDIA PUTRA NUSANTARA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-10-27","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"046-NDA PT EEN X PT MEDIA PUTRA NUSANTARA.pdf"},{"taskId":"LEG-202510-0064","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT TIRTA ADI SURYA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-10-27","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"047-NDA PT EEN X PT TIRTA ADI SURYA.pdf"},{"taskId":"LEG-202510-0065","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT BATA MERAH MEDIA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-10-30","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"048-NDA PT EEN X PT BATA MERAH MEDIA.pdf"},{"taskId":"LEG-202510-0066","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT TRIBUN DIGITAL ONLINE","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-10-31","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"049-NDA PT EEN X PT TRIBUN DIGITAL ONLINE.pdf"},{"taskId":"LEG-202511-0067","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT CAKRAWALA MEDIA USAHA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-11-10","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"052-NDA PT EEN X PT CAKRAWALA MEDIA USAHA.pdf"},{"taskId":"LEG-202511-0068","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT NARASI CITRA SAHWAHITA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-11-10","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"053-NDA PT EEN X PT NARASI CITRA SAHWAHITA.pdf"},{"taskId":"LEG-202511-0069","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT INFOMETRO MEDIATAMA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-11-10","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"055-NDA PT EEN X PT INFOMETRO MEDIATAMA (NETGOE).pdf"},{"taskId":"LEG-202603-0070","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT BELINSKY KREASI STUDIO","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2026-03-30","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"056-NDA PT EEN X PT BELINSKY KREASI STUDIO.pdf"},{"taskId":"LEG-202604-0071","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN X PT VOSFOYER RUMAH KREASI","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2026-04-07","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"057-NDA PT EEN X PT VOSFOYER RUMAH KREASI.pdf"},{"taskId":"LEG-202508-0072","workType":"Harian/Ad-hoc","taskName":"NDA_PT EEN X BOGOR24UPDATE","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-08-06","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"NDA_PT EEN X BOGOR24UPDATE.pdf"},{"taskId":"LEG-202508-0073","workType":"Harian/Ad-hoc","taskName":"NDA_PT EEN X CV VAN MAJU JAYA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-08-06","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"NDA_PT EEN X CV VAN MAJU JAYA.pdf"},{"taskId":"LEG-202507-0074","workType":"Harian/Ad-hoc","taskName":"NDA_PT EEN X FATHIAN HAFIZ","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-07-31","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"NDA_PT EEN X FATHIAN HAFIZ.pdf"},{"taskId":"LEG-202507-0075","workType":"Harian/Ad-hoc","taskName":"NDA_PT EEN X GEO GENIUS","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-07-31","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"NDA_PT EEN X GEO GENIUS.pdf"},{"taskId":"LEG-202508-0076","workType":"Harian/Ad-hoc","taskName":"NDA_PT EEN X INFO PUNCAK BOGOR","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-08-06","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"NDA_PT EEN X INFO PUNCAK BOGOR.pdf"},{"taskId":"LEG-202507-0077","workType":"Harian/Ad-hoc","taskName":"NDA_PT EEN X KATA ALFA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-07-31","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"NDA_PT EEN X KATA ALFA.pdf"},{"taskId":"LEG-202507-0078","workType":"Harian/Ad-hoc","taskName":"NDA_PT EEN X LANDUSE.ID","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-07-31","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"NDA_PT EEN X LANDUSE.ID.pdf"},{"taskId":"LEG-202508-0079","workType":"Harian/Ad-hoc","taskName":"NDA_PT EEN X MATAYA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-08-14","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"NDA_PT EEN X MATAYA.pdf"},{"taskId":"LEG-202508-0080","workType":"Harian/Ad-hoc","taskName":"NDA_PT EEN X PT BOGOR EKSPRESS MEDIA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-08-06","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"NDA_PT EEN X PT BOGOR EKSPRESS MEDIA - Radar Bogor.pdf"},{"taskId":"LEG-202508-0081","workType":"Harian/Ad-hoc","taskName":"NDA_PT EEN X PT POJOK SATU INDONESIA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-08-06","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"NDA_PT EEN X PT POJOK SATU INDONESIA.pdf"},{"taskId":"LEG-202508-0082","workType":"Harian/Ad-hoc","taskName":"NDA_YULIANI X JENNY","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2025-08-06","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"NDA_YULIANI X JENNY.pdf"},{"taskId":"LEG-202605-0083","workType":"Harian/Ad-hoc","taskName":"Akta PT EEN","businessUnit":"PT EEN","legalFramework":"Compliance & Regulatory / Affairs","priority":"P2 - Medium","status":"Completed","requestDate":"2026-05-22","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"Berkas EAL"},{"taskId":"LEG-202605-0084","workType":"Harian/Ad-hoc","taskName":"NIB PT EEN","businessUnit":"PT EEN","legalFramework":"Compliance & Regulatory / Affairs","priority":"P2 - Medium","status":"Completed","requestDate":"2026-05-22","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"Berkas EAL"},{"taskId":"LEG-202606-0085","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN - ALIF MUADZ MUHAMMAD","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2026-06-13","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"Drafting NDA PT EEN - ALIF MUADZ MUHAMMAD-signed.pdf"},{"taskId":"LEG-202606-0086","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN - ESTRINAYA SATYAKRIDA ROSDIANA","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2026-06-13","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"Drafting NDA PT EEN - ESTRINAYA SATYAKRIDA ROSDIANA(1)-signed.pdf"},{"taskId":"LEG-202606-0087","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN - FARIS MAKARIM","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2026-06-13","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"Drafting NDA PT EEN - FARIS MAKARIM(1)-signed.pdf"},{"taskId":"LEG-202606-0088","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN - ILHAM RAMADHAN","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2026-06-13","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"Drafting NDA PT EEN - ILHAM RAMADHAN(1)-signed.pdf"},{"taskId":"LEG-202606-0089","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN - MAYA AGATHA PUJI ARYANTY","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2026-06-13","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"Drafting NDA PT EEN - MAYA AGATHA PUJI ARYANTY(1)-signed.pdf"},{"taskId":"LEG-202606-0090","workType":"Harian/Ad-hoc","taskName":"NDA PT EEN - MUHAMMAD RAFIFAN AKBAR","businessUnit":"PT EEN","legalFramework":"Contract Management","priority":"P2 - Medium","status":"Completed","requestDate":"2026-06-13","targetCompletion":"-","blockerReason":"-","actionPlan":"-","docLink":"Drafting NDA PT EEN - MUHAMMAD RAFIFAN AKBAR(1)-signed.pdf"}];
+function loadLocal(){try{const r=localStorage.getItem(LS);return r===null?null:JSON.parse(r)}catch(e){return[]}}
+function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(tasks))}catch(e){}}
+async function persist(t,del,patch){
+  const i=tasks.findIndex(x=>x.taskId===t.taskId);
+  if(del){if(i>-1)tasks.splice(i,1)}else if(i>-1)tasks[i]=t;else tasks.push(t);
+  if(!window._nb)refresh();
+  if(!db){saveLocal();return true}
+  setSync('saving','Menyimpan...');
+  try{const r=db.doc('tasks/'+t.taskId);if(del)await r.delete();else if(patch)await r.update(patch);else await r.set(t);setSync('live','Tersinkron real-time');return true}
+  catch(e){setSync('err','Gagal menyimpan');toast('Gagal menyimpan: '+(e&&e.message||'coba lagi'));return false}
+}
+async function freshId(){let id=nextId(),k=0;if(db)while(k++<30&&(await db.doc('tasks/'+id).get()).exists)id=id.replace(/(\d+)$/,m=>String(+m+1).padStart(4,'0'));return id}
+async function init(){
+  buildNav();buildTab();
+  let user=null;
+  try{user=window.claude&&await claude.use('user')}catch(e){}
+  if(user&&user.can){const w=user.can('data.write');if(w===false)canWrite=false}
+  try{db=window.claude&&await claude.use('db')}catch(e){db=null}
+  if(!db){const sv=loadLocal();if(sv===null){tasks=SEED.map(t=>({...t}));saveLocal()}else tasks=sv;setSync('live','Tersimpan otomatis di browser');window.addEventListener('storage',ev=>{if(ev.key===LS){tasks=loadLocal()||[];refresh()}});refresh();return}
+  db.collection('tasks').onSnapshot(s=>{
+    tasks=s.docs.map(d=>d.data());
+    setSync(s.metadata.hasPendingWrites?'saving':'live',s.metadata.hasPendingWrites?'Menyimpan...':'Tersinkron real-time');
+    refresh();
+  },e=>setSync('err','Koneksi terputus'));
+  if(!canWrite){$('#add').disabled=true;toast('Anda hanya bisa melihat data')}
+}
+
+/* ---------- data turunan ---------- */
+function inTab(){return tab==='all'?tasks:tasks.filter(t=>t.legalFramework===tab)}
+const isLate=t=>t.status!=='Completed'&&/^\d{4}-\d\d-\d\d$/.test(t.targetCompletion)&&t.targetCompletion<new Date().toISOString().slice(0,10);
+function filtered(){
+  let d=inTab();
+  if(f.status)d=d.filter(t=>t.status===f.status);
+  if(f.pr)d=d.filter(t=>t.priority.startsWith(f.pr));
+  if(f.bu)d=d.filter(t=>t.businessUnit===f.bu);
+  if(f.late)d=d.filter(isLate);
+  if(f.q){const q=f.q.toLowerCase();d=d.filter(t=>[t.taskName,t.taskId,t.businessUnit,t.blockerReason,t.actionPlan].some(x=>String(x||'').toLowerCase().includes(q)))}
+  const o=x=>sort.k==='status'?ST.indexOf(x.status):x[sort.k],em=v=>v==null||v==='-'||v==='';
+  return d.sort((a,b)=>{const x=o(a),y=o(b);if(em(x)||em(y))return em(x)&&em(y)?0:em(x)?1:-1;return(x>y?1:x<y?-1:0)*sort.d});
+}
+
+/* ---------- tampilan ---------- */
+function buildNav(){
+  const IC={pie:'<path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>',doc:'<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>',shield:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',gavel:'<path d="m14 13-8.381 8.38a1 1 0 0 1-3.001-3L11 9.999"/><path d="M15.973 4.027A13 13 0 0 0 5.902 2.373c-1.398.342-1.092 2.158.277 2.601a19.9 19.9 0 0 1 5.822 3.024"/><path d="M16.001 11.999a19.9 19.9 0 0 1 3.024 5.824c.444 1.369 2.26 1.676 2.603.278A13 13 0 0 0 20 8.069"/><path d="M18.352 3.352a1.205 1.205 0 0 0-1.704 0l-5.296 5.296a1.205 1.205 0 0 0 0 1.704l2.296 2.296a1.205 1.205 0 0 0 1.704 0l5.296-5.296a1.205 1.205 0 0 0 0-1.704z"/>',case:'<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/>',warn:'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',bld:'<rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/>',mail:'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/>'};
+  const sv=k=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+IC[k]+'</svg>';
+  const it=(k,l,i)=>`<button class="nav${k===tab?' on':''}" data-tab="${h(k)}">${sv(i)}<span>${h(l)}</span><span class="n" data-n="${h(k)}">0</span></button>`;
+  $('#nav').innerHTML='<div class="grp">Menu Utama</div>'+it('all','Dashboard Utama','pie')+'<div class="grp">Kerangka Hukum</div>'+[['Contract Management','Contract Management','doc'],['Compliance & Regulatory / Affairs','Compliance & Regulatory','shield'],['Litigation & Dispute Resolution','Litigation & Dispute','gavel'],['Corporate Governance','Corporate Governance','case'],['Risk Management','Risk Management','warn'],['Asset','Asset','bld'],['Surat Keluar','Surat Keluar','mail']].map(a=>it(...a)).join('');
+}
+function setTab(k){
+  tab=k;f={status:'',pr:'',bu:'',q:'',late:false};
+  document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('on',b.dataset.tab===k));
+  $('#side').classList.remove('on');
+  buildTab();refresh();$('#v').scrollTop=0;
+}
+function buildTab(){
+  const dash=tab==='all';
+  $('#ttl').textContent=dash?'Dashboard Utama':tab;
+  const kp=[['','Total',`#3B82F6`,'tot'],['Completed','Selesai',`#10B981`,'Completed'],['In Progress','Berjalan',`#F59E0B`,'In Progress'],['Not Started','Belum mulai',`#94A3B8`,'Not Started'],['Blocked','Terblokir',`#EF4444`,'Blocked'],['late','Lewat tenggat',`#F97316`,'late']];
+  const cv=(id,t,s,c='')=>`<div class="pn"><h2>${t}</h2><p class="sub">${s}</p><div class="cv ${c}"><canvas id="${id}"></canvas></div></div>`;
+  $('#v').innerHTML=`<div class="kpis">${kp.map(([k,l,c,n])=>`<button class="kpi" style="--a:${c}" data-kpi="${k}"><span>${l}</span><b data-k="${n}">0</b></button>`).join('')}</div>
+  <div class="g4">${cv('cSt','Status','Klik irisan untuk menyaring')}${cv('cPr','Prioritas','Klik irisan untuk menyaring')}${dash?cv('cFw','Kerangka hukum','Klik untuk membuka kerangka')+cv('cBu','Unit bisnis','Klik untuk menyaring'):''}</div>
+  ${dash?`<div class="g2">${cv('cBh','Status per unit bisnis','Klik batang untuk menyaring unit dan status','t')}${cv('cBv','Prioritas per unit bisnis','Klik batang untuk menyaring unit dan prioritas','t')}</div>`:''}
+  <div class="pn"><h2>Daftar tugas</h2><p class="sub" id="cnt"></p>
+    <div class="bar">
+      <input class="fi" id="q" type="search" placeholder="Cari nama, ID, unit, catatan... (tekan /)" value="${h(f.q)}" aria-label="Cari">
+      <select class="fi" id="fs" aria-label="Status"><option value="">Semua status</option>${ST.map(s=>`<option>${s}</option>`).join('')}</select>
+      <select class="fi" id="fp" aria-label="Prioritas"><option value="">Semua prioritas</option>${PR.map(p=>`<option value="${p}">${PRL[p]}</option>`).join('')}</select>
+      <select class="fi" id="fb" aria-label="Unit bisnis"><option value="">Semua unit</option>${BUS.map(s=>`<option>${h(s)}</option>`).join('')}</select>
     </div>
+    <div class="chips" id="chips"></div>
+    <div class="tw"><table><thead><tr><th data-s="taskId">ID</th><th data-s="taskName">Tugas</th><th>Unit</th><th data-s="priority">Prioritas</th><th data-s="status">Status</th><th data-s="targetCompletion">Target</th><th>Catatan</th><th>Aksi</th></tr></thead><tbody id="tb"></tbody></table></div><div class="pg" id="pg"></div></div>`;
+  Object.values(charts).forEach(c=>c.destroy());charts={};
+}
+function refresh(){
+  const d=inTab(),cnt=s=>d.filter(t=>t.status===s).length;
+  document.querySelectorAll('[data-n]').forEach(e=>{const k=e.dataset.n;e.textContent=k==='all'?tasks.length:tasks.filter(t=>t.legalFramework===k).length});
+  $('#sfoot').innerHTML=`<b>Database Aktif (${tasks.length} Item)</b>Catatan Kendala & Action Plan Aktif.`;const bad=tasks.filter(t=>!FW.includes(t.legalFramework)||!BUS.includes(t.businessUnit)).length;if(bad)$('#sfoot').innerHTML+=`<div style="color:var(--bad);margin-top:6px">${bad} berkas punya kerangka/unit tidak valid dan tidak tampil di sidebar atau grafik</div>`;
+  $('#sub').textContent=`${d.length} berkas${tab==='all'?' dari seluruh kerangka hukum':' dalam kerangka ini'}`;
+  const kv={tot:d.length,Completed:cnt('Completed'),'In Progress':cnt('In Progress'),'Not Started':cnt('Not Started'),Blocked:cnt('Blocked'),late:d.filter(isLate).length};
+  document.querySelectorAll('[data-k]').forEach(e=>e.textContent=kv[e.dataset.k]);
+  document.querySelectorAll('.kpi').forEach(e=>{const k=e.dataset.kpi;e.classList.toggle('on',k==='late'?f.late:k===f.status&&!f.late&&k!=='')});
+  if($('#fs')){$('#fs').value=f.status;$('#fp').value=f.pr;$('#fb').value=f.bu}
+  const ch=[];if(f.status)ch.push(['status',f.status]);if(f.pr)ch.push(['pr',PRL[f.pr]]);if(f.bu)ch.push(['bu',f.bu]);if(f.late)ch.push(['late','Lewat tenggat']);if(f.q)ch.push(['q','"'+f.q+'"']);
+  $('#chips').innerHTML=ch.map(([k,l])=>`<span class="chip">${h(l)}<button data-x="${k}" aria-label="Hapus filter ${h(l)}">&times;</button></span>`).join('')+(ch.length>1?'<button class="btn sm" data-x="all">Hapus semua filter</button>':'');
+  const all=filtered(),sig=JSON.stringify([tab,f,sort]);if(sig!==refresh.sig){page=0;refresh.sig=sig}
+  const pages=Math.max(1,Math.ceil(all.length/PS));if(page>=pages)page=pages-1;
+  const rows=all.slice(page*PS,(page+1)*PS);
+  $('#cnt').textContent=`${all.length} dari ${d.length} ditampilkan. Klik baris untuk melihat detail.`;
+  $('#pg').innerHTML=pages>1?`<button class="btn sm" data-pg="-1" ${page?'':'disabled'}>Sebelumnya</button><span>Halaman ${page+1} dari ${pages}</span><button class="btn sm" data-pg="1" ${page<pages-1?'':'disabled'}>Berikutnya</button>`:'';
+  $('#tb').innerHTML=rows.length?rows.map(t=>{
+    const note=[!dash(t.blockerReason)&&`<div><b class="b">Kendala:</b> ${h(t.blockerReason)}</div>`,!dash(t.actionPlan)&&`<div><b class="a">Tindak lanjut:</b> ${h(t.actionPlan)}</div>`,!dash(t.docLink)&&(/^https?:\/\//.test(t.docLink)?`<div><a href="${h(t.docLink)}" target="_blank" rel="noopener" data-stop style="color:var(--ac)">Buka berkas</a></div>`:`<div>Berkas: ${h(t.docLink)}</div>`)].filter(Boolean).join('')||'-';
+    return`<tr data-id="${h(t.taskId)}" tabindex="0"><td class="id">${h(t.taskId)}</td><td><b>${h(t.taskName)}</b><div style="font-size:12px;color:var(--mu)">${h(t.legalFramework)}</div></td><td data-l="Unit">${h(t.businessUnit)}</td><td data-l="Prioritas"><span class="bd ${t.priority.slice(0,2).toLowerCase()}">${h(t.priority.split(' ')[0])}</span></td><td data-stop data-l="Status"><select class="ss ${stKey(t.status)}" data-qs="${h(t.taskId)}" aria-label="Ubah status" ${canWrite?'':'disabled'}>${ST.map(s=>`<option${s===t.status?' selected':''}>${s}</option>`).join('')}</select></td><td data-l="Target">${h(dash(t.targetCompletion)?'-':t.targetCompletion)}${isLate(t)?'<div class="late">Lewat tenggat</div>':''}</td><td class="nt" data-l="Catatan">${note}</td><td data-stop><div class="bar"><button class="btn sm" data-ed="${h(t.taskId)}" ${canWrite?'':'disabled'}>Edit</button><button class="btn sm dg" data-dl="${h(t.taskId)}" ${canWrite?'':'disabled'}>Hapus</button></div></td></tr>`}).join(''):`<tr><td colspan="8" class="empty">${tasks.length?'Tidak ada tugas yang cocok dengan filter. Hapus filter atau ubah kata kunci.':'Belum ada data. Klik "+ Tugas baru" untuk menambah berkas pertama.'}</td></tr>`;
+  drawCharts(d);
+}
 
-    <div id="toast" role="status"><i class="fa-solid fa-circle-check"></i> <span id="toastText">Notifikasi</span></div>
+/* ---------- grafik interaktif ---------- */
+function mk(id,type,labels,sets,opt={},onClick){
+  const el=document.getElementById(id);if(!el)return;
+  const mu=getComputedStyle(document.documentElement).getPropertyValue('--mu').trim()||'#94A3B8',tx=getComputedStyle(document.documentElement).getPropertyValue('--tx').trim()||'#F8FAFC';
+  if(charts[id]){charts[id].data.labels=labels;charts[id].data.datasets.forEach((ds,i)=>Object.assign(ds,sets[i]));charts[id].update('none');return}
+  const bar=type==='bar';
+  charts[id]=new Chart(el,{type,data:{labels,datasets:sets},options:Object.assign({responsive:true,maintainAspectRatio:false,onClick:(e,els)=>els.length&&onClick(els[0]),onHover:(e,els)=>e.native.target.style.cursor=els.length?'pointer':'default',plugins:{legend:{position:'bottom',labels:{color:tx,usePointStyle:true,font:{size:11}}}},cutout:bar?undefined:'62%',scales:bar?{x:{ticks:{color:mu,font:{size:10}},grid:{display:false},...(opt.xs||{})},y:{ticks:{color:mu,precision:0},grid:{color:'rgba(148,163,184,.15)'},...(opt.ys||{})}}:undefined},opt.o||{})});
+}
+function toggle(k,v){f[k]=f[k]===v?'':v;refresh();$('#cnt').scrollIntoView({behavior:'smooth',block:'nearest'})}
+function drawCharts(d){
+  const cnt=(fn)=>d.filter(fn).length,B='#0B1026',dim=(c,k)=>c.map((x,i)=>k<0||i===k?x:x+'55');
+  mk('cSt','doughnut',ST,[{data:ST.map(s=>cnt(t=>t.status===s)),backgroundColor:dim(ST.map(s=>STC[s]),ST.indexOf(f.status)),borderColor:B}],{},e=>toggle('status',ST[e.index]));
+  mk('cPr','doughnut',PR.map(p=>PRL[p]),[{data:PR.map(p=>cnt(t=>t.priority.startsWith(p))),backgroundColor:dim(PR.map(p=>PRC[p]),PR.indexOf(f.pr)),borderColor:B}],{},e=>toggle('pr',PR[e.index]));
+  if(tab!=='all')return;
+  const fw=FW.filter(x=>d.some(t=>t.legalFramework===x));
+  mk('cFw','doughnut',fw,[{data:fw.map(x=>cnt(t=>t.legalFramework===x)),backgroundColor:PAL,borderColor:B}],{},e=>setTab(fw[e.index]));
+  const bu=BUS.filter(x=>d.some(t=>t.businessUnit===x));
+  mk('cBu','doughnut',bu,[{data:bu.map(x=>cnt(t=>t.businessUnit===x)),backgroundColor:dim(PAL,bu.indexOf(f.bu)),borderColor:B}],{},e=>toggle('bu',bu[e.index]));
+  mk('cBh','bar',bu,ST.map(s=>({label:s,data:bu.map(x=>cnt(t=>t.businessUnit===x&&t.status===s)),backgroundColor:STC[s]})),{o:{indexAxis:'y'},xs:{stacked:true},ys:{stacked:true}},e=>{f.bu=bu[e.index];f.status=ST[e.datasetIndex];refresh()});
+  mk('cBv','bar',bu,PR.map(p=>({label:PRL[p],data:bu.map(x=>cnt(t=>t.businessUnit===x&&t.priority.startsWith(p))),backgroundColor:PRC[p]})),{},e=>{f.bu=bu[e.index];f.pr=PR[e.datasetIndex];refresh()});
+}
 
-    <script>
-        const STORAGE_KEY = 'legal_tracker_full_90_notes_v2';
+/* ---------- form, detail, hapus ---------- */
+let lastFocus=null;
+const open=id=>{lastFocus=document.activeElement;const m=$('#'+id);m.classList.add('on');m.setAttribute('role','dialog');m.setAttribute('aria-modal','true')},shut=()=>{const w=document.querySelector('.mb.on');document.querySelectorAll('.mb.on').forEach(m=>m.classList.remove('on'));if(w&&lastFocus&&lastFocus.focus)lastFocus.focus()};
+function toast(m,act,lab){const t=$('#tt');t.textContent='';const p=document.createElement('span');p.textContent=m;t.append(p);if(act){const b=document.createElement('button');b.className='btn sm';b.textContent=lab;b.onclick=()=>{act();t.classList.remove('on')};t.append(b)}t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),act?6000:2800)}
+const val=id=>$('#'+id).value;
+function nextId(){
+  const ym=new Date().toISOString().slice(0,7).replace('-','');
+  const mx=tasks.reduce((m,t)=>Math.max(m,parseInt(String(t.taskId).split('-')[2])||0),0);
+  return`LEG-${ym}-${String(mx+1).padStart(4,'0')}`;
+}
+function openForm(id){
+  $('#form').reset();$('#fId').value='';$('#form').dataset.dirty='';$('#form').dataset.warn='';
+  $('#fBu').innerHTML=BUS.map(x=>`<option>${h(x)}</option>`).join('');
+  $('#fFw').innerHTML=FW.map(x=>`<option>${h(x)}</option>`).join('');
+  const t=id&&tasks.find(x=>x.taskId===id);
+  if(t){$('#fmT').textContent='Edit '+t.taskId;$('#fId').value=t.taskId;$('#fId').dataset.base=t.updatedAt||'';
+    [['fName','taskName'],['fWt','workType'],['fBu','businessUnit'],['fFw','legalFramework'],['fPr','priority'],['fSt','status']].forEach(([a,b])=>$('#'+a).value=t[b]);
+    $('#fRd').value=/^\d/.test(t.requestDate)?t.requestDate:'';$('#fTg').value=/^\d/.test(t.targetCompletion)?t.targetCompletion:'';
+    $('#fBl').value=dash(t.blockerReason)?'':t.blockerReason;$('#fAc').value=dash(t.actionPlan)?'':t.actionPlan;$('#fDl').value=dash(t.docLink)?'':t.docLink;
+  }else{$('#fmT').textContent='Tugas baru';$('#fRd').value=new Date().toISOString().slice(0,10);if(tab!=='all')$('#fFw').value=tab}
+  shut();open('fm');$('#fName').focus();
+}
+function openDetail(id){
+  const t=tasks.find(x=>x.taskId===id);if(!t)return;
+  $('#dId').textContent=t.taskId;$('#dT').textContent=t.taskName;
+  const r=[['Jenis pekerjaan',t.workType],['Unit bisnis',t.businessUnit],['Status',t.status],['Prioritas',t.priority],['Kerangka hukum',t.legalFramework],['Tanggal permintaan',t.requestDate],['Target selesai',t.targetCompletion],['Kendala',t.blockerReason,1],['Rencana tindak lanjut',t.actionPlan,1],['Berkas',t.docLink,1],['Terakhir diubah',t.updatedAt?new Date(t.updatedAt).toLocaleString('id-ID'):'-']];
+  $('#dBody').innerHTML=r.map(([a,b,w])=>`<div class="${w?'f':''}"><dt>${a}</dt><dd>${h(dash(b)?'-':b)}</dd></div>`).join('');
+  $('#dEdit').onclick=()=>openForm(id);$('#dEdit').disabled=$('#dDel').disabled=!canWrite;
+  $('#dDel').onclick=()=>askDel(id);shut();open('dm');
+}
+function askDel(id){
+  const t=tasks.find(x=>x.taskId===id);if(!t)return;
+  $('#cT').textContent=`${t.taskId} - ${t.taskName} akan dihapus untuk semua orang yang membuka halaman ini.`;
+  $('#cOk').onclick=()=>{persist(t,true);shut();toast('Tugas dihapus',()=>persist(t),'Urungkan')};shut();open('cm');
+}
+$('#form').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const id=val('fId'),old=id&&tasks.find(x=>x.taskId===id);
+  const t={...(old||{}),taskId:id||await freshId(),taskName:val('fName').trim(),workType:val('fWt'),businessUnit:val('fBu'),legalFramework:val('fFw'),priority:val('fPr'),status:val('fSt'),requestDate:val('fRd')||'-',targetCompletion:val('fTg')||'-',blockerReason:val('fBl').trim()||'-',actionPlan:val('fAc').trim()||'-',docLink:val('fDl').trim()||'-'};
+  if(!t.taskName)return;
+  if(/^\d/.test(t.requestDate)&&/^\d/.test(t.targetCompletion)&&t.targetCompletion<t.requestDate){toast('Target selesai tidak boleh sebelum tanggal permintaan');return}
+  if(t.status==='Blocked'&&dash(t.blockerReason)){toast('Isi kendala (blocker) untuk status Blocked');$('#fBl').focus();return}
+  if(id){
+    if(!old){toast('Tugas ini sudah dihapus orang lain');shut();return}
+    if((old.updatedAt||'')!==($('#fId').dataset.base||'')){toast('Data ini diubah orang lain saat Anda mengedit',()=>openForm(id),'Muat ulang');return}
+    const patch={};for(const k in t)if(t[k]!==old[k])patch[k]=t[k];
+    if(!Object.keys(patch).length){toast('Tidak ada perubahan');shut();return}
+    patch.updatedAt=t.updatedAt=new Date().toISOString();
+    await persist(t,false,patch);shut();toast('Perubahan disimpan')
+  }else{t.updatedAt=new Date().toISOString();await persist(t);shut();toast('Tugas ditambahkan')}
+});
 
-        // 90 Data Lengkap Asli Excel beserta Blocker Reason, Action Plan, & Document Link
-        const defaultLegalData = [
-            { taskId: "LEG-202605-0001", workType: "Harian/Ad-hoc", taskName: "Pengajuan Pembuatan T SHIRT Polda Jabar", businessUnit: "Others", legalFramework: "Corporate Governance", priority: "P3 - Low", status: "Completed", requestDate: "2026-05-15", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0002", workType: "Harian/Ad-hoc", taskName: "Somasi RTH tanah Trinity", businessUnit: "Others", legalFramework: "Litigation & Dispute Resolution", priority: "P1 - High", status: "Completed", requestDate: "2026-05-18", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0003", workType: "Harian/Ad-hoc", taskName: "Penandatanganan perubahan kegiatan Usaha SBU", businessUnit: "PT 72425", legalFramework: "Compliance & Regulatory / Affairs", priority: "P1 - High", status: "Completed", requestDate: "2026-05-28", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0004", workType: "Harian/Ad-hoc", taskName: "Kasus TPPU", businessUnit: "PT Eigerindo MPI", legalFramework: "Litigation & Dispute Resolution", priority: "P1 - High", status: "Completed", requestDate: "2026-05-18", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0005", workType: "Harian/Ad-hoc", taskName: "Peralihan PT Supplier PT KIND", businessUnit: "PT KIND", legalFramework: "Corporate Governance", priority: "P1 - High", status: "Completed", requestDate: "2026-05-18", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0006", workType: "Harian/Ad-hoc", taskName: "Pengurusan ruko Semarang PT 23", businessUnit: "PT Dua Puluh Tiga", legalFramework: "Litigation & Dispute Resolution", priority: "P1 - High", status: "Completed", requestDate: "2026-05-26", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0007", workType: "Harian/Ad-hoc", taskName: "Resume terkait kejelasan pembagian Fungsi PT KIND", businessUnit: "PT 72425", legalFramework: "Corporate Governance", priority: "P1 - High", status: "Completed", requestDate: "2026-05-28", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0008", workType: "Harian/Ad-hoc", taskName: "Wanprestasi Supplier PT 23", businessUnit: "PT Dua Puluh Tiga", legalFramework: "Litigation & Dispute Resolution", priority: "P1 - High", status: "Completed", requestDate: "2026-05-26", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0009", workType: "Harian/Ad-hoc", taskName: "Pengurusan Piutang B2B PT 23", businessUnit: "PT Dua Puluh Tiga", legalFramework: "Litigation & Dispute Resolution", priority: "P1 - High", status: "Completed", requestDate: "2026-05-13", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0010", workType: "Harian/Ad-hoc", taskName: "Penyalahgunaan Dana Pajak dan Piutang SAMUDRA", businessUnit: "PT KIND", legalFramework: "Litigation & Dispute Resolution", priority: "P1 - High", status: "Completed", requestDate: "2026-05-25", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0011", workType: "Harian/Ad-hoc", taskName: "Pengurusan Tanah Sragen", businessUnit: "PT Eksonindo MPI", legalFramework: "Compliance & Regulatory / Affairs", priority: "P2 - Medium", status: "Completed", requestDate: "2026-05-26", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202610-0012", workType: "Harian/Ad-hoc", taskName: "Penjelasan terkait Sertipikat HALAL", businessUnit: "PT KIND", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "-", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0013", workType: "Harian/Ad-hoc", taskName: "PKS KIND dengan EMPI", businessUnit: "PT Eksonindo MPI", legalFramework: "Contract Management", priority: "P0 - Urgent/Critical", status: "Completed", requestDate: "2026-05-28", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0014", workType: "Harian/Ad-hoc", taskName: "PKS PT 23 dengan Eksonindo", businessUnit: "PT Dua Puluh Tiga", legalFramework: "Surat Keluar", priority: "P1 - High", status: "Completed", requestDate: "2026-05-28", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202606-0015", workType: "Harian/Ad-hoc", taskName: "Penanganan Kasus Kehilangan EAS SUMATRA", businessUnit: "PT Eigerindo MPI", legalFramework: "Litigation & Dispute Resolution", priority: "P1 - High", status: "Completed", requestDate: "2026-06-02", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202606-0016", workType: "Harian/Ad-hoc", taskName: "BPOM Pembuatan Parfum", businessUnit: "PT KIND", legalFramework: "Compliance & Regulatory / Affairs", priority: "P1 - High", status: "Completed", requestDate: "2026-06-02", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0017", workType: "Harian/Ad-hoc", taskName: "Pembuatan Form FCCA untuk Supllier", businessUnit: "PT KIND", legalFramework: "Risk Management", priority: "P2 - Medium", status: "Completed", requestDate: "2026-05-28", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0018", workType: "Harian/Ad-hoc", taskName: "Penyelesaian sengketa hukum Vendor CSJ di Polda Jabar", businessUnit: "PT KIND", legalFramework: "Litigation & Dispute Resolution", priority: "P2 - Medium", status: "Completed", requestDate: "2026-05-28", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202606-0019", workType: "Harian/Ad-hoc", taskName: "Penyelesaian kasus sexsual Harrasement", businessUnit: "PT Eigerindo MPI", legalFramework: "Compliance & Regulatory / Affairs", priority: "P1 - High", status: "Completed", requestDate: "2026-06-03", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202606-0020", workType: "Harian/Ad-hoc", taskName: "Penyelesaian kasus Asuransi", businessUnit: "PT Eigerindo MPI", legalFramework: "Contract Management", priority: "P1 - High", status: "Completed", requestDate: "2026-06-05", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202606-0021", workType: "Harian/Ad-hoc", taskName: "Jual Beli Store Radio Dalam", businessUnit: "PT Eigerindo MPI", legalFramework: "Asset", priority: "P1 - High", status: "In Progress", requestDate: "2026-06-08", targetCompletion: "2026-06-09", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202606-0022", workType: "Harian/Ad-hoc", taskName: "Pembuatan langkah Do and Don’t terkait music di materi Promosi", businessUnit: "PT 72425", legalFramework: "Risk Management", priority: "P1 - High", status: "In Progress", requestDate: "2026-06-08", targetCompletion: "2026-06-09", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202609-0023", workType: "Harian/Ad-hoc", taskName: "Penyelesaian Administrasi CSR Bogor", businessUnit: "PT EEN", legalFramework: "Compliance & Regulatory / Affairs", priority: "P1 - High", status: "In Progress", requestDate: "2026-09-05", targetCompletion: "2026-09-30", blockerReason: "Menunggu Draft yang dibikin oleh Pemkab terkait CSR / Hibah helikopter", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0024", workType: "Project", taskName: "Penyedian Dokumen Pendukung Perizinan Gereja", businessUnit: "Others", legalFramework: "Compliance & Regulatory / Affairs", priority: "P3 - Low", status: "Completed", requestDate: "2026-05-15", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0025", workType: "Project", taskName: "Dokumen PERTEK", businessUnit: "Others", legalFramework: "Compliance & Regulatory / Affairs", priority: "P1 - High", status: "Completed", requestDate: "2026-05-18", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0026", workType: "Project", taskName: "Koordinasi PUPR dan Tata Ruang", businessUnit: "Others", legalFramework: "Compliance & Regulatory / Affairs", priority: "P1 - High", status: "Completed", requestDate: "2026-05-28", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0027", workType: "Project", taskName: "Koordinasi Front Kerukunan Umat Beragama (Pengumpulan 100 KTP)", businessUnit: "Others", legalFramework: "Compliance & Regulatory / Affairs", priority: "P1 - High", status: "Completed", requestDate: "2026-05-18", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202607-0028", workType: "Project", taskName: "Dokumen Persyaratan PBG", businessUnit: "Others", legalFramework: "Compliance & Regulatory / Affairs", priority: "P1 - High", status: "Blocked", requestDate: "2026-07-01", targetCompletion: "2028-08-31", blockerReason: "Dari pihak kontraktor terkendala masalah perpanjangan sertipikat ahli", actionPlan: "Melakukan koordinasi dengan pihak PTSP untuk keringanan terkait sertipikat ahli cukup hanya nomor register perpanjangan nya saja", docLink: "-" },
-            { taskId: "LEG-202609-0029", workType: "Project", taskName: "Dokumen PBG Terbit", businessUnit: "Others", legalFramework: "Compliance & Regulatory / Affairs", priority: "P1 - High", status: "Not Started", requestDate: "2026-09-15", targetCompletion: "2026-09-30", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0030", workType: "Project", taskName: "Persetujuan Kantor Daerah", businessUnit: "Owner & Family", legalFramework: "Compliance & Regulatory / Affairs", priority: "P1 - High", status: "Completed", requestDate: "2026-05-26", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0031", workType: "Project", taskName: "Persetujuan Kantor Pusat", businessUnit: "Owner & Family", legalFramework: "Compliance & Regulatory / Affairs", priority: "P1 - High", status: "Completed", requestDate: "2026-05-13", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0032", workType: "Project", taskName: "Penunjukan Konsultan Pembongkaran", businessUnit: "Owner & Family", legalFramework: "Compliance & Regulatory / Affairs", priority: "P2 - Medium", status: "Completed", requestDate: "2026-05-26", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202608-0033", workType: "Project", taskName: "Persetujuan Dokumen Izin Prinsip", businessUnit: "Owner & Family", legalFramework: "Compliance & Regulatory / Affairs", priority: "P1 - High", status: "Blocked", requestDate: "2026-08-01", targetCompletion: "2026-09-30", blockerReason: "Dari Pihak BPN meminta proses lewat OSS namun PLN keberatan tanah BUMN sebelum 2021 dapat memakai PERTEK", actionPlan: "Memfasilitasi pertemuan pihak PLN dengan Kepala Kantor BPN Kota untuk mencari alternatif terbaik", docLink: "-" },
-            { taskId: "LEG-202610-0034", workType: "Project", taskName: "Pembuatan Somasi", businessUnit: "Owner & Family", legalFramework: "Litigation & Dispute Resolution", priority: "P2 - Medium", status: "Completed", requestDate: "-", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202610-0035", workType: "Project", taskName: "Sosialisasi dan Komunikasi", businessUnit: "Owner & Family", legalFramework: "Litigation & Dispute Resolution", priority: "P1 - High", status: "Completed", requestDate: "-", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202605-0036", workType: "Project", taskName: "Pembongkaran", businessUnit: "Owner & Family", legalFramework: "Litigation & Dispute Resolution", priority: "P1 - High", status: "Completed", requestDate: "2026-05-28", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202609-0037", workType: "Project", taskName: "Kelengkapan Dokumen", businessUnit: "PT Eigerindo MPI", legalFramework: "Asset", priority: "P1 - High", status: "Completed", requestDate: "2026-09-02", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202609-0038", workType: "Project", taskName: "Penawaran Biaya Notaris", businessUnit: "PT Eigerindo MPI", legalFramework: "Asset", priority: "P2 - Medium", status: "In Progress", requestDate: "2026-09-15", targetCompletion: "2026-09-23", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202609-0039", workType: "Project", taskName: "PPJB", businessUnit: "PT Eigerindo MPI", legalFramework: "Compliance & Regulatory / Affairs", priority: "P2 - Medium", status: "Not Started", requestDate: "2026-09-29", targetCompletion: "2026-09-29", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202610-0040", workType: "Project", taskName: "Pelepasan Hak", businessUnit: "PT Eigerindo MPI", legalFramework: "Compliance & Regulatory / Affairs", priority: "P1 - High", status: "Not Started", requestDate: "-", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202610-0041", workType: "Project", taskName: "Permohonan Sertipikasi", businessUnit: "PT Eigerindo MPI", legalFramework: "Compliance & Regulatory / Affairs", priority: "P1 - High", status: "Not Started", requestDate: "-", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202610-0042", workType: "Project", taskName: "Sertipikat balik nama", businessUnit: "PT Eigerindo MPI", legalFramework: "Asset", priority: "P1 - High", status: "Not Started", requestDate: "-", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202610-0043", workType: "Harian/Ad-hoc", taskName: "DELH", businessUnit: "PT Eigerindo MPI", legalFramework: "Compliance & Regulatory / Affairs", priority: "P2 - Medium", status: "Completed", requestDate: "-", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "-" },
-            { taskId: "LEG-202505-0044", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT GREENPROSA ADIKARA NUSA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-05-21", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "019-NDA PT EEN X PT GREENPROSA ADIKARA NUSA.pdf" },
-            { taskId: "LEG-202508-0045", workType: "Harian/Ad-hoc", taskName: "PT EEN X PT Tukar Pikiran Sebaya", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-08-15", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "021-NDA PT EEN X PT Tukar Pikiran Sebaya.docx.pdf" },
-            { taskId: "LEG-202508-0046", workType: "Harian/Ad-hoc", taskName: "PT EEN X PT Dektos Digital Corbuzier", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-08-15", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "022-NDA PT EEN X PT Dektos Digital Corbuzier.pdf" },
-            { taskId: "LEG-202508-0047", workType: "Harian/Ad-hoc", taskName: "PT EEN X Iskandar(MhSGeo)", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-08-15", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "023-NDA PT EEN X Iskandar(MhSGeo).pdf" },
-            { taskId: "LEG-202508-0048", workType: "Harian/Ad-hoc", taskName: "PT EEn X Agnes Abigail", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-08-28", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "024-NDA PT EEN X Agnes Abigail (WIUI).docx.pdf" },
-            { taskId: "LEG-202509-0049", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X Ruth Deasy Natalia (Info Bogor)", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-09-01", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "025-NDA PT EEN X Ruth Deasy Natalia (Info Bogor).pdf" },
-            { taskId: "LEG-202509-0050", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X Muhammad Taufiq Rahman (Info Jawabarat)", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-09-01", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "026-NDA PT EEN X Muhammad Taufiq Rahman (Info Jawabarat).pdf" },
-            { taskId: "LEG-202509-0051", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X Miftahul Khoer(Bogor Update)", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-09-01", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "027-NDA PT EEN X Miftahul Khoer(Bogor Update).pdf" },
-            { taskId: "LEG-202509-0052", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT Tribun Berita Online", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-09-01", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "028-NDA PT EEN X PT Tribun Berita Online.pdf" },
-            { taskId: "LEG-202509-0053", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT Genesis Garuda Asia", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-09-18", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "029-NDA PT EEN X PT Genesis Garuda Asia.pdf" },
-            { taskId: "LEG-202509-0054", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X Khana Salsabila Wiguna (Bogorpisan)", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-09-01", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "030-NDA PT EEN X Khana Salsabila Wiguna (Bogorpisan).pdf" },
-            { taskId: "LEG-202509-0055", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT Bogor Mediapolitan", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-09-01", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "031-NDA PT EEN X PT Bogor Mediapolitan.pdf" },
-            { taskId: "LEG-202509-0056", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT Jaring Teguh Perkasa", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-09-03", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "032-NDA PT EEN X PT Jaring Teguh Perkasa (Bogordaily).pdf" },
-            { taskId: "LEG-202509-0057", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT Trans Digital Media", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-09-29", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "034-NDA PT EEN X PT Trans Digital Media (Detikcom).pdf" },
-            { taskId: "LEG-202510-0058", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X MELIA ZULIA EPENDI", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-10-01", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "037-NDA PT EEN X MELIA ZULIA EPENDI.pdf" },
-            { taskId: "LEG-202510-0059", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X EGI PUTRA PRATAMA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-10-01", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "038-NDA PT EEN X EGI PUTRA PRATAMA.pdf" },
-            { taskId: "LEG-202510-0060", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT Sebumi Berbagi Inspirasi", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-10-03", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "039-NDA PT EEN X PT Sebumi Berbagi Inspirasi.pdf" },
-            { taskId: "LEG-202509-0061", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT TEKNOLOGI LINTAS NEGERI ABADI", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-09-01", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "041-NDA PT EEN X PT TEKNOLOGI LINTAS NEGERI ABA.pdf" },
-            { taskId: "LEG-202510-0062", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X YAYASAN JEJAK ALAM NUSANTARA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-10-21", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "044-NDA PT EEN X YAYASAN JEJAK ALAM NUSANTARA.pdf" },
-            { taskId: "LEG-202510-0063", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT MEDIA PUTRA NUSANTARA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-10-27", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "046-NDA PT EEN X PT MEDIA PUTRA NUSANTARA.pdf" },
-            { taskId: "LEG-202510-0064", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT TIRTA ADI SURYA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-10-27", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "047-NDA PT EEN X PT TIRTA ADI SURYA.pdf" },
-            { taskId: "LEG-202510-0065", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT BATA MERAH MEDIA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-10-30", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "048-NDA PT EEN X PT BATA MERAH MEDIA.pdf" },
-            { taskId: "LEG-202510-0066", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT TRIBUN DIGITAL ONLINE", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-10-31", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "049-NDA PT EEN X PT TRIBUN DIGITAL ONLINE.pdf" },
-            { taskId: "LEG-202511-0067", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT CAKRAWALA MEDIA USAHA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-11-10", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "052-NDA PT EEN X PT CAKRAWALA MEDIA USAHA.pdf" },
-            { taskId: "LEG-202511-0068", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT NARASI CITRA SAHWAHITA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-11-10", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "053-NDA PT EEN X PT NARASI CITRA SAHWAHITA.pdf" },
-            { taskId: "LEG-202511-0069", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT INFOMETRO MEDIATAMA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-11-10", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "055-NDA PT EEN X PT INFOMETRO MEDIATAMA (NETGOE).pdf" },
-            { taskId: "LEG-202603-0070", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT BELINSKY KREASI STUDIO", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2026-03-30", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "056-NDA PT EEN X PT BELINSKY KREASI STUDIO.pdf" },
-            { taskId: "LEG-202604-0071", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN X PT VOSFOYER RUMAH KREASI", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2026-04-07", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "057-NDA PT EEN X PT VOSFOYER RUMAH KREASI.pdf" },
-            { taskId: "LEG-202508-0072", workType: "Harian/Ad-hoc", taskName: "NDA_PT EEN X BOGOR24UPDATE", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-08-06", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "NDA_PT EEN X BOGOR24UPDATE.pdf" },
-            { taskId: "LEG-202508-0073", workType: "Harian/Ad-hoc", taskName: "NDA_PT EEN X CV VAN MAJU JAYA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-08-06", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "NDA_PT EEN X CV VAN MAJU JAYA.pdf" },
-            { taskId: "LEG-202507-0074", workType: "Harian/Ad-hoc", taskName: "NDA_PT EEN X FATHIAN HAFIZ", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-07-31", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "NDA_PT EEN X FATHIAN HAFIZ.pdf" },
-            { taskId: "LEG-202507-0075", workType: "Harian/Ad-hoc", taskName: "NDA_PT EEN X GEO GENIUS", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-07-31", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "NDA_PT EEN X GEO GENIUS.pdf" },
-            { taskId: "LEG-202508-0076", workType: "Harian/Ad-hoc", taskName: "NDA_PT EEN X INFO PUNCAK BOGOR", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-08-06", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "NDA_PT EEN X INFO PUNCAK BOGOR.pdf" },
-            { taskId: "LEG-202507-0077", workType: "Harian/Ad-hoc", taskName: "NDA_PT EEN X KATA ALFA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-07-31", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "NDA_PT EEN X KATA ALFA.pdf" },
-            { taskId: "LEG-202507-0078", workType: "Harian/Ad-hoc", taskName: "NDA_PT EEN X LANDUSE.ID", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-07-31", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "NDA_PT EEN X LANDUSE.ID.pdf" },
-            { taskId: "LEG-202508-0079", workType: "Harian/Ad-hoc", taskName: "NDA_PT EEN X MATAYA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-08-14", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "NDA_PT EEN X MATAYA.pdf" },
-            { taskId: "LEG-202508-0080", workType: "Harian/Ad-hoc", taskName: "NDA_PT EEN X PT BOGOR EKSPRESS MEDIA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-08-06", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "NDA_PT EEN X PT BOGOR EKSPRESS MEDIA - Radar Bogor.pdf" },
-            { taskId: "LEG-202508-0081", workType: "Harian/Ad-hoc", taskName: "NDA_PT EEN X PT POJOK SATU INDONESIA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-08-06", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "NDA_PT EEN X PT POJOK SATU INDONESIA.pdf" },
-            { taskId: "LEG-202508-0082", workType: "Harian/Ad-hoc", taskName: "NDA_YULIANI X JENNY", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2025-08-06", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "NDA_YULIANI X JENNY.pdf" },
-            { taskId: "LEG-202605-0083", workType: "Harian/Ad-hoc", taskName: "Akta PT EEN", businessUnit: "PT EEN", legalFramework: "Compliance & Regulatory / Affairs", priority: "P2 - Medium", status: "Completed", requestDate: "2026-05-22", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "Berkas EAL" },
-            { taskId: "LEG-202605-0084", workType: "Harian/Ad-hoc", taskName: "NIB PT EEN", businessUnit: "PT EEN", legalFramework: "Compliance & Regulatory / Affairs", priority: "P2 - Medium", status: "Completed", requestDate: "2026-05-22", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "Berkas EAL" },
-            { taskId: "LEG-202606-0085", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN - ALIF MUADZ MUHAMMAD", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2026-06-13", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "Drafting NDA PT EEN - ALIF MUADZ MUHAMMAD-signed.pdf" },
-            { taskId: "LEG-202606-0086", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN - ESTRINAYA SATYAKRIDA ROSDIANA", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2026-06-13", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "Drafting NDA PT EEN - ESTRINAYA SATYAKRIDA ROSDIANA(1)-signed.pdf" },
-            { taskId: "LEG-202606-0087", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN - FARIS MAKARIM", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2026-06-13", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "Drafting NDA PT EEN - FARIS MAKARIM(1)-signed.pdf" },
-            { taskId: "LEG-202606-0088", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN - ILHAM RAMADHAN", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2026-06-13", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "Drafting NDA PT EEN - ILHAM RAMADHAN(1)-signed.pdf" },
-            { taskId: "LEG-202606-0089", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN - MAYA AGATHA PUJI ARYANTY", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2026-06-13", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "Drafting NDA PT EEN - MAYA AGATHA PUJI ARYANTY(1)-signed.pdf" },
-            { taskId: "LEG-202606-0090", workType: "Harian/Ad-hoc", taskName: "NDA PT EEN - MUHAMMAD RAFIFAN AKBAR", businessUnit: "PT EEN", legalFramework: "Contract Management", priority: "P2 - Medium", status: "Completed", requestDate: "2026-06-13", targetCompletion: "-", blockerReason: "-", actionPlan: "-", docLink: "Drafting NDA PT EEN - MUHAMMAD RAFIFAN AKBAR(1)-signed.pdf" }
-        ];
+/* ---------- CSV ---------- */
+async function exportCsv(){
+  const hd=['taskId','workType','taskName','businessUnit','legalFramework','priority','status','requestDate','targetCompletion','blockerReason','actionPlan','docLink'];
+  const q=v=>{v=String(v??'');if(/^[=+@]/.test(v))v="'"+v;return'"'+v.replace(/"/g,'""')+'"'};
+  const csv='\ufeff'+hd.join(',')+'\n'+filtered().map(t=>hd.map(k=>q(t[k])).join(',')).join('\n');
+  const name=(tab==='all'?'semua-tugas':tab.replace(/[^a-z0-9]+/gi,'-').toLowerCase())+'.csv';
+  try{const dl=window.claude&&await claude.use('downloads');if(dl){await dl.save({filename:name,data:csv});toast('CSV siap disimpan');return}}catch(e){if(e&&e.code==='declined')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=name;a.click();toast('CSV diunduh');
+}
 
-        function getInitialData() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                try { return JSON.parse(saved); } catch (e) { console.error(e); }
-            }
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultLegalData));
-            return [...defaultLegalData];
-        }
+/* ---------- impor excel ---------- */
+const nz=v=>String(v??'').toLowerCase().replace(/[^a-z0-9]/g,''),clean=v=>String(v??'').replace(/\s+/g,' ').trim();
+const HD={taskId:['taskid','id','noid','nomor'],workType:['worktype','jenispekerjaan','tipe'],taskName:['taskname','taskdocumentname','taskdocument','namatugas','namadokumen','tugas','documentname'],businessUnit:['businessunit','unitbisnis','bu','unit','entitas'],legalFramework:['legalframework','kerangkahukum','framework','kategori'],priority:['priority','prioritas'],status:['status'],requestDate:['requestdate','tanggalpermintaan','tglpermintaan'],targetCompletion:['targetcompletion','targetselesai','target','deadline'],blockerReason:['blockerreason','blocker','kendala'],actionPlan:['actionplan','rencanatindaklanjut','tindaklanjut'],docLink:['doclink','documentlink','linkberkas','berkas','link','tautan']};
+const mapFw=v=>{const k=nz(v);const m=k&&[['contract','Contract Management'],['compliance','Compliance & Regulatory / Affairs'],['regulatory','Compliance & Regulatory / Affairs'],['litigation','Litigation & Dispute Resolution'],['dispute','Litigation & Dispute Resolution'],['governance','Corporate Governance'],['risk','Risk Management'],['asset','Asset'],['suratkeluar','Surat Keluar']].find(a=>k.includes(a[0]));return m?m[1]:null};
+const mapPr=v=>{const s=clean(v),m=s.match(/p\s*([0-3])/i);if(m)return['P0 - Urgent/Critical','P1 - High','P2 - Medium','P3 - Low'][m[1]];const k=nz(s);return/urgent|critical|darurat/.test(k)?'P0 - Urgent/Critical':/high|tinggi/.test(k)?'P1 - High':/medium|sedang/.test(k)?'P2 - Medium':/low|rendah/.test(k)?'P3 - Low':null};
+const mapSt=v=>{const k=nz(v);return/notstart|belum/.test(k)?'Not Started':/progress|berjalan|proses/.test(k)?'In Progress':/block|terblokir|terhambat/.test(k)?'Blocked':/complet|selesai|done/.test(k)?'Completed':null};
+const mapDt=v=>{let y,m,d,x;if(typeof v==='number'){const p=XLSX.SSF.parse_date_code(v);if(!p)return null;y=p.y;m=p.m;d=p.d}else{const s=clean(v);if(!s||s==='-')return'-';if(x=s.match(/^(\d{4})-(\d{2})-(\d{2})/)){y=+x[1];m=+x[2];d=+x[3]}else if(x=s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/)){d=+x[1];m=+x[2];y=+x[3]}else return null}
+  const t=new Date(Date.UTC(y,m-1,d));return t.getUTCFullYear()===y&&t.getUTCMonth()===m-1&&t.getUTCDate()===d?`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`:null};
+const keyOf=x=>[nz(x.taskName),nz(x.businessUnit),nz(x.legalFramework),x.requestDate].join('|');
+function parseSheet(rows,sheet,seen){
+  const hi=rows.findIndex((r,i)=>i<15&&r.filter(c=>Object.values(HD).some(a=>a.includes(nz(c)))).length>=3);
+  if(hi<0)return{err:'header kolom tidak dikenali'};
+  const col={};rows[hi].forEach((c,i)=>{for(const k in HD)if(col[k]==null&&HD[k].includes(nz(c)))col[k]=i});
+  const sheetFw=mapFw(sheet),need=['taskName','businessUnit','priority','status'].concat(sheetFw?[]:['legalFramework']),miss=need.filter(k=>col[k]==null);
+  if(miss.length)return{err:'kolom wajib tidak ada: '+miss.join(', ')};
+  const out=[],issues=[];
+  rows.slice(hi+1).forEach((r,i)=>{
+    if(r.every(c=>clean(c)===''))return;
+    const n=hi+i+2,g=k=>col[k]==null?'':r[col[k]],bad=[];
+    const t={taskId:clean(g('taskId')),workType:/project/i.test(g('workType'))?'Project':'Harian/Ad-hoc',taskName:clean(g('taskName')),businessUnit:BUS.find(b=>nz(b)===nz(g('businessUnit'))),legalFramework:col.legalFramework==null?sheetFw:mapFw(g('legalFramework')),priority:mapPr(g('priority')),status:mapSt(g('status')),requestDate:mapDt(g('requestDate')),targetCompletion:mapDt(g('targetCompletion')),blockerReason:clean(g('blockerReason'))||'-',actionPlan:clean(g('actionPlan'))||'-',docLink:clean(g('docLink'))||'-'};
+    if(!t.taskName)bad.push('nama tugas kosong');
+    if(t.taskId&&!/^[A-Za-z0-9_.-]+$/.test(t.taskId))bad.push('ID tidak valid "'+t.taskId+'"');
+    if(!t.businessUnit)bad.push('unit bisnis tidak dikenal "'+clean(g('businessUnit'))+'"');
+    if(!t.legalFramework)bad.push('kerangka hukum tidak dikenal "'+clean(g('legalFramework'))+'"');
+    if(!t.priority)bad.push('prioritas tidak dikenal "'+clean(g('priority'))+'"');
+    if(!t.status)bad.push('status tidak dikenal "'+clean(g('status'))+'"');
+    if(t.requestDate===null)bad.push('tanggal permintaan tidak valid');
+    if(t.targetCompletion===null)bad.push('target selesai tidak valid');
+    if(/^\d/.test(t.requestDate)&&/^\d/.test(t.targetCompletion)&&t.targetCompletion<t.requestDate)bad.push('target sebelum tanggal permintaan');
+    if(bad.length){issues.push(`${sheet} baris ${n}: ${bad.join('; ')}`);return}
+    const sk=t.taskId||keyOf(t);
+    if(seen.has(sk)||seen.has(keyOf(t))){issues.push(`${sheet} baris ${n}: duplikat di file, dilewati`);return}
+    seen.add(sk);seen.add(keyOf(t));
+    const ex=(t.taskId&&tasks.find(x=>x.taskId===t.taskId))||tasks.find(x=>keyOf(x)===keyOf(t));
+    if(ex&&seen.has('M:'+ex.taskId)){issues.push(`${sheet} baris ${n}: menunjuk ke data ${ex.taskId} yang sudah dipakai baris lain, dilewati`);return}
+    if(ex){seen.add('M:'+ex.taskId);const patch={};for(const k in HD)if(k!=='taskId'&&t[k]!=='-'&&t[k]!==ex[k])patch[k]=t[k];out.push({type:Object.keys(patch).length?'upd':'same',t:ex,patch})}
+    else out.push({type:'new',t})
+  });
+  return{rows:out,issues}
+}
+function showImport(p,errs){
+  const c=k=>p.rows.filter(x=>x.type===k).length,n=c('new')+c('upd');
+  $('#imB').innerHTML=(p.rows.length||p.issues.length?`<div class="kpis" style="margin-bottom:12px">${[['Baru',c('new'),'#10B981'],['Diperbarui',c('upd'),'#3B82F6'],['Sama (dilewati)',c('same'),'#94A3B8'],['Bermasalah',p.issues.length,'#EF4444']].map(a=>`<div class="kpi" style="--a:${a[2]}"><span>${a[0]}</span><b>${a[1]}</b></div>`).join('')}</div>`:'')
+   +(p.issues.length?`<p class="sub">Baris ini tidak diimpor. Perbaiki di Excel lalu impor ulang:</p><ul style="font-size:12.5px;padding-left:18px;max-height:180px;overflow:auto">${p.issues.slice(0,60).map(i=>`<li>${h(i)}</li>`).join('')}</ul>`:'')
+   +(errs.length?`<p class="sub">Sheet dilewati: ${h(errs.join(' | '))}</p>`:'')
+   +(n?`<p class="sub">Data dicocokkan lewat ID, atau lewat nama + unit + kerangka + tanggal permintaan, jadi tidak ada data ganda. Sel kosong tidak menghapus data yang sudah ada. Kerangka hukum menentukan menu sidebar tempat data muncul.</p>`:'');
+  const ok=$('#imOk');ok.textContent=n?`Impor ${n} data`:'Tidak ada yang bisa diimpor';ok.disabled=!n;ok.onclick=()=>applyImport(p);shut();open('im')
+}
+async function applyImport(p){
+  const ok=$('#imOk');ok.disabled=true;let nn=0,nu=0,fail=0;window._nb=true;
+  try{for(const x of p.rows){
+    if(x.type==='same')continue;const u=new Date().toISOString();let r;
+    if(x.type==='upd'){r=await persist({...x.t,...x.patch,updatedAt:u},false,{...x.patch,updatedAt:u});nu++}
+    else{const id=x.t.taskId||await freshId();r=await persist({...x.t,taskId:id,updatedAt:u});nn++}
+    if(!r)fail++}}
+  finally{window._nb=false;refresh();shut()}
+  toast(`Impor selesai: ${nn} baru, ${nu} diperbarui${fail?`, ${fail} gagal disimpan`:''}`)
+}
+$('#imp').onclick=()=>$('#impf').click();
+$('#impf').onchange=async e=>{
+  const file=e.target.files[0];e.target.value='';if(!file)return;
+  if(typeof XLSX==='undefined'){toast('Pustaka Excel gagal dimuat. Periksa koneksi internet.');return}
+  try{
+    const wb=XLSX.read(await file.arrayBuffer(),{type:'array'}),seen=new Set(),all={rows:[],issues:[]},errs=[];
+    wb.SheetNames.forEach(n=>{const r=parseSheet(XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:'',raw:true}),n,seen);if(r.err)errs.push(n+': '+r.err);else{all.rows.push(...r.rows);all.issues.push(...r.issues)}});
+    showImport(all,errs)
+  }catch(err){toast('File tidak bisa dibaca. Gunakan .xlsx, .xls, atau .csv.')}
+};
+$('#form').addEventListener('input',()=>{$('#form').dataset.dirty='1'});
+function tryShut(){const fr=$('#form');if($('#fm').classList.contains('on')&&fr.dataset.dirty&&!fr.dataset.warn){fr.dataset.warn='1';toast('Ada perubahan belum disimpan. Tutup lagi untuk membuang.');return}shut()}
 
-        let rawLegalData = getInitialData();
-
-        function saveToStorage() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(rawLegalData));
-            updateSidebarBadges();
-        }
-
-        let currentTab = 'Dashboard Utama';
-        let filterStatus = '';
-        let filterPriority = '';
-        let searchTerm = '';
-
-        function switchTab(tab) {
-            currentTab = tab;
-            filterStatus = '';
-            filterPriority = '';
-            searchTerm = '';
-            
-            document.querySelectorAll('.nav').forEach(el => el.classList.remove('active'));
-            if (event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
-            } else {
-                const btn = document.querySelector(`.nav[onclick*="${tab}"]`);
-                if (btn) btn.classList.add('active');
-            }
-            
-            document.getElementById('pageTitle').textContent = tab;
-            document.getElementById('pageSub').textContent = tab === 'Dashboard Utama' 
-                ? 'Ringkasan Grafik & Status Keseluruhan 90 Berkas Excel.'
-                : `Monitoring dan pengelolaan berkas untuk kerangka hukum: ${tab}.`;
-            
-            renderContent();
-            initCharts();
-        }
-
-        function updateSidebarBadges() {
-            document.getElementById('nb-dash').textContent = rawLegalData.length;
-            document.getElementById('nb-contract').textContent = rawLegalData.filter(d => d.legalFramework === 'Contract Management').length;
-            document.getElementById('nb-comp').textContent = rawLegalData.filter(d => d.legalFramework === 'Compliance & Regulatory / Affairs').length;
-            document.getElementById('nb-lit').textContent = rawLegalData.filter(d => d.legalFramework === 'Litigation & Dispute Resolution').length;
-            document.getElementById('nb-corp').textContent = rawLegalData.filter(d => d.legalFramework === 'Corporate Governance').length;
-            document.getElementById('nb-risk').textContent = rawLegalData.filter(d => d.legalFramework === 'Risk Management').length;
-            document.getElementById('nb-asset').textContent = rawLegalData.filter(d => d.legalFramework === 'Asset').length;
-        }
-
-        function toggleSidebar() {
-            document.getElementById('side').classList.toggle('on');
-        }
-
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            document.getElementById('toastText').textContent = msg;
-            t.classList.add('on');
-            setTimeout(() => t.classList.remove('on'), 3000);
-        }
-
-        function resetDataStorage() {
-            if (confirm("Apakah Anda ingin mereset seluruh data kembali ke data Excel awal (90 item)?")) {
-                localStorage.removeItem(STORAGE_KEY);
-                rawLegalData = [...defaultLegalData];
-                saveToStorage();
-                renderContent();
-                initCharts();
-                showToast("Data berhasil direset ke 90 data asli Excel.");
-            }
-        }
-
-        function renderContent() {
-            const v = document.getElementById('v');
-            let data = currentTab === 'Dashboard Utama' 
-                ? [...rawLegalData] 
-                : rawLegalData.filter(d => d.legalFramework === currentTab);
-            
-            const total = data.length;
-            const completed = data.filter(d => d.status === 'Completed').length;
-            const inProgress = data.filter(d => d.status === 'In Progress').length;
-            const notStarted = data.filter(d => d.status === 'Not Started').length;
-            const blocked = data.filter(d => d.status === 'Blocked').length;
-
-            updateSidebarBadges();
-            document.getElementById('dataCountLabel').textContent = `Database Aktif (${rawLegalData.length} Item)`;
-
-            if (filterStatus) data = data.filter(d => d.status === filterStatus);
-            if (filterPriority) data = data.filter(d => d.priority.includes(filterPriority));
-            if (searchTerm) data = data.filter(d => d.taskName.toLowerCase().includes(searchTerm) || d.taskId.toLowerCase().includes(searchTerm) || d.businessUnit.toLowerCase().includes(searchTerm));
-
-            let chartsSectionHTML = '';
-            if (currentTab === 'Dashboard Utama') {
-                chartsSectionHTML = `
-                    <!-- 1. BAGIAN ATAS: 4 PIE / DOUGHNUT CHARTS -->
-                    <div class="pie-charts-grid">
-                        <div class="pn">
-                            <h2>Komposisi Status</h2>
-                            <p class="sub">Total Status Pekerjaan.</p>
-                            <div style="height: 180px; position: relative;"><canvas id="statusPieChart"></canvas></div>
-                        </div>
-                        <div class="pn">
-                            <h2>Berdasarkan Prioritas</h2>
-                            <p class="sub">Tingkat Urgensi (P0 - P3).</p>
-                            <div style="height: 180px; position: relative;"><canvas id="priorityPieChart"></canvas></div>
-                        </div>
-                        <div class="pn">
-                            <h2>Kerangka Hukum</h2>
-                            <p class="sub">Sebaran Domain Hukum.</p>
-                            <div style="height: 180px; position: relative;"><canvas id="frameworkPieChart"></canvas></div>
-                        </div>
-                        <div class="pn">
-                            <h2>Business Unit</h2>
-                            <p class="sub">Proporsi Entitas / Unit.</p>
-                            <div style="height: 180px; position: relative;"><canvas id="buPieChart"></canvas></div>
-                        </div>
-                    </div>
-
-                    <!-- 2. BAGIAN BAWAH: BAR CHARTS BUSINESS UNIT (HORIZONTAL & VERTIKAL) -->
-                    <div class="bar-charts-grid">
-                        <div class="pn">
-                            <h2>Status per Business Unit (Horizontal Bar)</h2>
-                            <p class="sub">Rincian status di tiap Business Unit.</p>
-                            <div style="height: 320px; position: relative;"><canvas id="buHorizontalBarChart"></canvas></div>
-                        </div>
-                        <div class="pn">
-                            <h2>Prioritas per Business Unit (Vertikal Bar)</h2>
-                            <p class="sub">Rincian tingkat urgensi di tiap Business Unit.</p>
-                            <div style="height: 320px; position: relative;"><canvas id="buVerticalBarChart"></canvas></div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                chartsSectionHTML = `
-                    <div class="pie-charts-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
-                        <div class="pn">
-                            <h2>Komposisi Status (${currentTab})</h2>
-                            <p class="sub">Distribusi status tugas dalam kerangka ini.</p>
-                            <div style="height: 200px; position: relative;"><canvas id="statusPieChart"></canvas></div>
-                        </div>
-                        <div class="pn">
-                            <h2>Berdasarkan Prioritas (${currentTab})</h2>
-                            <p class="sub">Proporsi tingkat urgensi di kerangka ini.</p>
-                            <div style="height: 200px; position: relative;"><canvas id="priorityPieChart"></canvas></div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            v.innerHTML = `
-                <div class="k">
-                    <div style="--a: #3B82F6;"><span>Total Item</span><b>${total}</b></div>
-                    <div style="--a: #10B981;"><span style="color:#34D399">Selesai (Completed)</span><b style="color:#34D399">${completed}</b></div>
-                    <div style="--a: #F59E0B;"><span style="color:#FBBF24">Berjalan (In Progress)</span><b style="color:#FBBF24">${inProgress}</b></div>
-                    <div style="--a: #64748B;"><span style="color:#CBD5E1">Belum Mulai (Not Started)</span><b style="color:#CBD5E1">${notStarted}</b></div>
-                    <div style="--a: #EF4444;"><span style="color:#F87171">Terblokir (Blocked)</span><b style="color:#F87171">${blocked}</b></div>
-                </div>
-
-                ${chartsSectionHTML}
-
-                <div class="pn" style="display:flex; flex-direction:column;">
-                    <h2>${currentTab === 'Dashboard Utama' ? 'Daftar 90 Berkas Hukum Excel & Catatan' : 'Daftar Tugas Hukum'}</h2>
-                    <p class="sub">Filter dan monitoring dokumen hukum lengkap beserta Blocker & Action Plan.</p>
-                    
-                    <div class="flex flex-wrap gap-3 items-center justify-between mb-4">
-                        <div class="flex flex-wrap gap-2 items-center">
-                            <input type="text" id="searchInput" class="fi" placeholder="Cari nama tugas / ID / Business Unit..." value="${searchTerm}" oninput="handleSearch(this.value)">
-                            <select class="fi" onchange="filterStatus = this.value; renderContent(); initCharts();">
-                                <option value="">Semua Status</option>
-                                <option value="Completed" ${filterStatus==='Completed'?'selected':''}>Completed</option>
-                                <option value="In Progress" ${filterStatus==='In Progress'?'selected':''}>In Progress</option>
-                                <option value="Not Started" ${filterStatus==='Not Started'?'selected':''}>Not Started</option>
-                                <option value="Blocked" ${filterStatus==='Blocked'?'selected':''}>Blocked</option>
-                            </select>
-                            <select class="fi" onchange="filterPriority = this.value; renderContent(); initCharts();">
-                                <option value="">Semua Prioritas</option>
-                                <option value="P0" ${filterPriority==='P0'?'selected':''}>P0 - Urgent</option>
-                                <option value="P1" ${filterPriority==='P1'?'selected':''}>P1 - High</option>
-                                <option value="P2" ${filterPriority==='P2'?'selected':''}>P2 - Medium</option>
-                                <option value="P3" ${filterPriority==='P3'?'selected':''}>P3 - Low</option>
-                            </select>
-                        </div>
-                        <span class="text-xs text-slate-400 font-semibold">${data.length} dari ${rawLegalData.length} ditampilkan</span>
-                    </div>
-
-                    <div class="tw">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Task ID</th>
-                                    <th>Work Type</th>
-                                    <th>Task / Document Name</th>
-                                    <th>Business Unit</th>
-                                    <th>Legal Framework</th>
-                                    <th>Priority</th>
-                                    <th>Status</th>
-                                    <th>Catatan & Aksi</th>
-                                    <th>Aksi Sistem</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${data.length === 0 ? `<tr><td colspan="9" class="text-center text-slate-500 py-8">Tidak ada data yang sesuai filter.</td></tr>` : data.map(item => `
-                                    <tr>
-                                        <td onclick="openDetailModal('${item.taskId}')" class="font-mono text-amber-400 font-bold">${item.taskId}</td>
-                                        <td onclick="openDetailModal('${item.taskId}')">${item.workType}</td>
-                                        <td onclick="openDetailModal('${item.taskId}')" class="font-medium text-white">${item.taskName}</td>
-                                        <td onclick="openDetailModal('${item.taskId}')"><span class="font-semibold text-slate-200">${item.businessUnit}</span></td>
-                                        <td onclick="openDetailModal('${item.taskId}')" class="text-xs font-semibold text-slate-300">${item.legalFramework}</td>
-                                        <td onclick="openDetailModal('${item.taskId}')"><span class="badge ${item.priority.substring(0,2).toLowerCase()}">${item.priority.split(' ')[0]}</span></td>
-                                        <td onclick="openDetailModal('${item.taskId}')"><span class="badge ${item.status.toLowerCase().replace(' ','')}">${item.status}</span></td>
-                                        
-                                        <!-- KOLOM PINGGIR: CATATAN BLOCKER, ACTION PLAN, & LINK DRIVE -->
-                                        <td onclick="openDetailModal('${item.taskId}')">
-                                            <div class="note-box">
-                                                ${item.blockerReason && item.blockerReason !== '-' ? `
-                                                    <div><span class="note-tag blocker"><i class="fa-solid fa-triangle-exclamation"></i> Blocker</span> <span class="text-rose-300">${item.blockerReason}</span></div>
-                                                ` : ''}
-                                                ${item.actionPlan && item.actionPlan !== '-' ? `
-                                                    <div><span class="note-tag action"><i class="fa-solid fa-lightbulb"></i> Action</span> <span class="text-blue-300">${item.actionPlan}</span></div>
-                                                ` : ''}
-                                                ${item.docLink && item.docLink !== '-' ? `
-                                                    <div><a href="#" onclick="event.stopPropagation(); alert('Membuka dokumen: ${item.docLink}')" class="doc-link-btn"><i class="fa-solid fa-file-pdf"></i> ${item.docLink.length > 25 ? item.docLink.substring(0,22) + '...' : item.docLink}</a></div>
-                                                ` : ''}
-                                                ${(!item.blockerReason || item.blockerReason==='-') && (!item.actionPlan || item.actionPlan==='-') && (!item.docLink || item.docLink==='-') ? `<span class="text-slate-500 text-xs">-</span>` : ''}
-                                            </div>
-                                        </td>
-
-                                        <td>
-                                            <div class="flex items-center gap-1.5" onclick="event.stopPropagation()">
-                                                <button onclick="openFormModal('edit', '${item.taskId}')" class="btn" style="padding: 6px 10px; font-size:12px;" title="Edit"><i class="fa-solid fa-pen text-amber-400"></i></button>
-                                                <button onclick="deleteTask('${item.taskId}')" class="btn danger" style="padding: 6px 10px; font-size:12px;" title="Hapus"><i class="fa-solid fa-trash"></i></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-            setTimeout(initCharts, 50);
-        }
-
-        let chartInstances = {};
-
-        function createDoughnutChart(canvasId, labels, dataValues, backgroundColors) {
-            const ctx = document.getElementById(canvasId);
-            if (!ctx) return;
-
-            if (chartInstances[canvasId]) {
-                chartInstances[canvasId].destroy();
-            }
-
-            chartInstances[canvasId] = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: dataValues,
-                        backgroundColor: backgroundColors,
-                        borderWidth: 2,
-                        borderColor: '#0A1120'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#F1F5F9',
-                                font: { family: 'Plus Jakarta Sans', size: 9.5 },
-                                padding: 6,
-                                usePointStyle: true
-                            }
-                        }
-                    },
-                    cutout: '65%'
-                }
-            });
-        }
-
-        function initCharts() {
-            let data = currentTab === 'Dashboard Utama' 
-                ? [...rawLegalData] 
-                : rawLegalData.filter(d => d.legalFramework === currentTab);
-
-            // 1. PIE CHARTS
-            const completed = data.filter(d => d.status === 'Completed').length;
-            const inProgress = data.filter(d => d.status === 'In Progress').length;
-            const notStarted = data.filter(d => d.status === 'Not Started').length;
-            const blocked = data.filter(d => d.status === 'Blocked').length;
-            
-            createDoughnutChart('statusPieChart', ['Completed', 'In Progress', 'Not Started', 'Blocked'], [completed, inProgress, notStarted, blocked], ['#10B981', '#3B82F6', '#64748B', '#EF4444']);
-
-            const p0 = data.filter(d => d.priority.startsWith('P0')).length;
-            const p1 = data.filter(d => d.priority.startsWith('P1')).length;
-            const p2 = data.filter(d => d.priority.startsWith('P2')).length;
-            const p3 = data.filter(d => d.priority.startsWith('P3')).length;
-
-            createDoughnutChart('priorityPieChart', ['P0 (Urgent)', 'P1 (High)', 'P2 (Medium)', 'P3 (Low)'], [p0, p1, p2, p3], ['#EF4444', '#D946EF', '#F59E0B', '#64748B']);
-
-            if (currentTab === 'Dashboard Utama') {
-                const fwMap = {};
-                data.forEach(d => { fwMap[d.legalFramework] = (fwMap[d.legalFramework] || 0) + 1; });
-                createDoughnutChart('frameworkPieChart', Object.keys(fwMap), Object.values(fwMap), ['#3B82F6', '#10B981', '#F59E0B', '#D946EF', '#06B6D4', '#84CC16', '#A855F7']);
-
-                const buMap = {};
-                data.forEach(d => { buMap[d.businessUnit] = (buMap[d.businessUnit] || 0) + 1; });
-                createDoughnutChart('buPieChart', Object.keys(buMap), Object.values(buMap), ['#6366F1', '#EC4899', '#14B8A6', '#F97316', '#84CC16', '#A855F7', '#EAB308', '#06B6D4']);
-
-                // 2. BAR CHARTS BUSINESS UNIT
-                const buList = Object.keys(buMap);
-                const buStatusData = { 'Completed': [], 'In Progress': [], 'Not Started': [], 'Blocked': [] };
-
-                buList.forEach(bu => {
-                    const buItems = data.filter(d => d.businessUnit === bu);
-                    buStatusData['Completed'].push(buItems.filter(d => d.status === 'Completed').length);
-                    buStatusData['In Progress'].push(buItems.filter(d => d.status === 'In Progress').length);
-                    buStatusData['Not Started'].push(buItems.filter(d => d.status === 'Not Started').length);
-                    buStatusData['Blocked'].push(buItems.filter(d => d.status === 'Blocked').length);
-                });
-
-                const ctxH = document.getElementById('buHorizontalBarChart');
-                if (ctxH) {
-                    if (chartInstances['buHorizontalBarChart']) chartInstances['buHorizontalBarChart'].destroy();
-                    chartInstances['buHorizontalBarChart'] = new Chart(ctxH, {
-                        type: 'bar',
-                        data: {
-                            labels: buList,
-                            datasets: [
-                                { label: 'Completed', data: buStatusData['Completed'], backgroundColor: '#10B981' },
-                                { label: 'In Progress', data: buStatusData['In Progress'], backgroundColor: '#3B82F6' },
-                                { label: 'Not Started', data: buStatusData['Not Started'], backgroundColor: '#64748B' },
-                                { label: 'Blocked', data: buStatusData['Blocked'], backgroundColor: '#EF4444' }
-                            ]
-                        },
-                        options: {
-                            indexAxis: 'y',
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                x: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } },
-                                y: { stacked: true, grid: { display: false }, ticks: { color: '#F8FAFC', font: { weight: '600', size: 10 } } }
-                            },
-                            plugins: {
-                                legend: { position: 'bottom', labels: { color: '#F1F5F9', font: { size: 10 } } }
-                            }
-                        }
-                    });
-                }
-
-                const buPriorityData = { 'P0': [], 'P1': [], 'P2': [], 'P3': [] };
-
-                buList.forEach(bu => {
-                    const buItems = data.filter(d => d.businessUnit === bu);
-                    buPriorityData['P0'].push(buItems.filter(d => d.priority.startsWith('P0')).length);
-                    buPriorityData['P1'].push(buItems.filter(d => d.priority.startsWith('P1')).length);
-                    buPriorityData['P2'].push(buItems.filter(d => d.priority.startsWith('P2')).length);
-                    buPriorityData['P3'].push(buItems.filter(d => d.priority.startsWith('P3')).length);
-                });
-
-                const ctxV = document.getElementById('buVerticalBarChart');
-                if (ctxV) {
-                    if (chartInstances['buVerticalBarChart']) chartInstances['buVerticalBarChart'].destroy();
-                    chartInstances['buVerticalBarChart'] = new Chart(ctxV, {
-                        type: 'bar',
-                        data: {
-                            labels: buList,
-                            datasets: [
-                                { label: 'P0 (Urgent)', data: buPriorityData['P0'], backgroundColor: '#EF4444' },
-                                { label: 'P1 (High)', data: buPriorityData['P1'], backgroundColor: '#D946EF' },
-                                { label: 'P2 (Medium)', data: buPriorityData['P2'], backgroundColor: '#F59E0B' },
-                                { label: 'P3 (Low)', data: buPriorityData['P3'], backgroundColor: '#64748B' }
-                            ]
-                        },
-                        options: {
-                            indexAxis: 'x',
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                x: { stacked: false, grid: { display: false }, ticks: { color: '#F8FAFC', font: { weight: '600', size: 9.5 } } },
-                                y: { stacked: false, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } }
-                            },
-                            plugins: {
-                                legend: { position: 'bottom', labels: { color: '#F1F5F9', font: { size: 10 } } }
-                            }
-                        }
-                    });
-                }
-            }
-        }
-
-        function handleSearch(val) {
-            searchTerm = val.toLowerCase();
-            renderContent();
-        }
-
-        function openFormModal(mode, taskId = null) {
-            const modal = document.getElementById('formModal');
-            const title = document.getElementById('formModalTitle');
-            const icon = document.getElementById('formModalIcon');
-            
-            document.getElementById('taskForm').reset();
-            document.getElementById('editTaskId').value = '';
-
-            if (mode === 'edit' && taskId) {
-                const item = rawLegalData.find(d => d.taskId === taskId);
-                if (!item) return;
-                title.textContent = `Edit Tugas: ${item.taskId}`;
-                icon.className = "fa-solid fa-pen-to-square text-amber-400 text-lg";
-                
-                document.getElementById('editTaskId').value = item.taskId;
-                document.getElementById('inpName').value = item.taskName;
-                document.getElementById('inpWorkType').value = item.workType;
-                document.getElementById('inpBU').value = item.businessUnit;
-                document.getElementById('inpFramework').value = item.legalFramework;
-                document.getElementById('inpPriority').value = item.priority;
-                document.getElementById('inpStatus').value = item.status;
-                document.getElementById('inpRequestDate').value = item.requestDate;
-                document.getElementById('inpTarget').value = item.targetCompletion;
-                document.getElementById('inpBlocker').value = item.blockerReason !== '-' ? item.blockerReason : '';
-                document.getElementById('inpAction').value = item.actionPlan !== '-' ? item.actionPlan : '';
-                document.getElementById('inpDocLink').value = item.docLink !== '-' ? item.docLink : '';
-            } else {
-                title.textContent = 'Tambah Tugas Hukum Baru';
-                icon.className = "fa-solid fa-plus-circle text-amber-400 text-lg";
-                document.getElementById('inpRequestDate').value = new Date().toISOString().split('T')[0];
-            }
-            modal.classList.add('on');
-        }
-
-        function closeFormModal() {
-            document.getElementById('formModal').classList.remove('on');
-        }
-
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            const editId = document.getElementById('editTaskId').value;
-            
-            const taskData = {
-                workType: document.getElementById('inpWorkType').value,
-                taskName: document.getElementById('inpName').value,
-                businessUnit: document.getElementById('inpBU').value,
-                legalFramework: document.getElementById('inpFramework').value,
-                priority: document.getElementById('inpPriority').value,
-                status: document.getElementById('inpStatus').value,
-                requestDate: document.getElementById('inpRequestDate').value,
-                targetCompletion: document.getElementById('inpTarget').value || '-',
-                blockerReason: document.getElementById('inpBlocker').value.trim() || '-',
-                actionPlan: document.getElementById('inpAction').value.trim() || '-',
-                docLink: document.getElementById('inpDocLink').value.trim() || '-'
-            };
-
-            if (editId) {
-                const idx = rawLegalData.findIndex(d => d.taskId === editId);
-                if (idx !== -1) {
-                    rawLegalData[idx] = { ...rawLegalData[idx], ...taskData };
-                    showToast(`Tugas ${editId} berhasil diperbarui!`);
-                }
-            } else {
-                const newIdNum = rawLegalData.length + 1;
-                const newItem = {
-                    taskId: `LEG-202606-${String(newIdNum).padStart(4, '0')}`,
-                    ...taskData
-                };
-                rawLegalData.unshift(newItem);
-                showToast('Tugas baru berhasil ditambahkan!');
-            }
-
-            saveToStorage();
-            closeFormModal();
-            renderContent();
-            initCharts();
-            closeDetailModal();
-        }
-
-        function deleteTask(taskId) {
-            if (confirm(`Apakah Anda yakin ingin menghapus tugas ${taskId}?`)) {
-                const idx = rawLegalData.findIndex(d => d.taskId === taskId);
-                if (idx !== -1) {
-                    rawLegalData.splice(idx, 1);
-                    saveToStorage();
-                    renderContent();
-                    initCharts();
-                    showToast(`Tugas ${taskId} berhasil dihapus.`);
-                    closeDetailModal();
-                }
-            }
-        }
-
-        function openDetailModal(taskId) {
-            const item = rawLegalData.find(d => d.taskId === taskId);
-            if (!item) return;
-
-            document.getElementById('detId').textContent = item.taskId;
-            document.getElementById('detTitle').textContent = item.taskName;
-            document.getElementById('detPriority').textContent = item.priority;
-            document.getElementById('detPriority').className = `badge ${item.priority.substring(0,2).toLowerCase()}`;
-            document.getElementById('detWorkType').textContent = item.workType;
-            document.getElementById('detBU').textContent = item.businessUnit;
-            document.getElementById('detStatus').textContent = item.status;
-            document.getElementById('detFw').textContent = item.legalFramework;
-            document.getElementById('detReqDate').textContent = item.requestDate;
-            document.getElementById('detTarget').textContent = item.targetCompletion;
-            document.getElementById('detBlocker').textContent = item.blockerReason || '-';
-            document.getElementById('detAction').textContent = item.actionPlan || '-';
-            document.getElementById('detDocLink').textContent = item.docLink || '-';
-
-            document.getElementById('btnEditFromDetail').setAttribute('onclick', `closeDetailModal(); openFormModal('edit', '${item.taskId}')`);
-            document.getElementById('btnDeleteFromDetail').setAttribute('onclick', `deleteTask('${item.taskId}')`);
-
-            document.getElementById('detailModal').classList.add('on');
-        }
-
-        function closeDetailModal() { document.getElementById('detailModal').classList.remove('on'); }
-
-        function exportToCSV() {
-            let csv = "Task ID,Work Type,Task Name,Business Unit,Legal Framework,Priority,Status,Request Date,Target Completion,Blocker Reason,Action Plan,Doc Link\n";
-            const exportData = currentTab === 'Dashboard Utama' 
-                ? rawLegalData 
-                : rawLegalData.filter(d => d.legalFramework === currentTab);
-            
-            exportData.forEach(d => {
-                csv += `"${d.taskId}","${d.workType}","${d.taskName}","${d.businessUnit}","${d.legalFramework}","${d.priority}","${d.status}","${d.requestDate}","${d.targetCompletion}","${d.blockerReason}","${d.actionPlan}","${d.docLink}"\n`;
-            });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.setAttribute('href', url);
-            a.setAttribute('download', `${currentTab.replace(/[^a-zA-Z0-9]/g, '_')}_Export.csv`);
-            a.click();
-            showToast('Data berhasil diekspor ke CSV.');
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            updateSidebarBadges();
-            switchTab('Dashboard Utama');
-        });
-    </script>
+/* ---------- event ---------- */
+document.addEventListener('click',e=>{
+  const g=s=>e.target.closest(s);
+  let el;
+  if(g('[data-stop]')&&!g('[data-ed],[data-dl]'))return;
+  if(el=g('[data-tab]'))setTab(el.dataset.tab);
+  else if(el=g('[data-kpi]')){const k=el.dataset.kpi;if(k==='late'){f.late=!f.late;f.status=''}else{f.late=false;f.status=(k===f.status||k==='')?'':k}refresh()}
+  else if(el=g('[data-x]')){const k=el.dataset.x;if(k==='all')f={status:'',pr:'',bu:'',q:'',late:false};else f[k]=k==='late'?false:'';if(k==='q'||k==='all')$('#q').value='';refresh()}
+  else if(el=g('[data-ed]'))openForm(el.dataset.ed);
+  else if(el=g('[data-dl]'))askDel(el.dataset.dl);
+  else if(el=g('[data-pg]')){page+=+el.dataset.pg;refresh();$('#cnt').scrollIntoView({behavior:'smooth',block:'nearest'})}
+  else if(el=g('th[data-s]')){sort=sort.k===el.dataset.s?{k:sort.k,d:-sort.d}:{k:el.dataset.s,d:1};refresh()}
+  else if(el=g('tr[data-id]'))openDetail(el.dataset.id);
+  else if(g('[data-close]')||e.target.classList.contains('mb'))tryShut();
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.id==='fs')f.status=t.value,f.late=false,refresh();
+  else if(t.id==='fp')f.pr=t.value,refresh();
+  else if(t.id==='fb')f.bu=t.value,refresh();
+  else if(t.dataset.qs){const x=tasks.find(k=>k.taskId===t.dataset.qs);if(x){if(t.value==='Blocked'&&dash(x.blockerReason)){openForm(x.taskId);$('#fSt').value='Blocked';$('#fBl').focus();toast('Isi kendala untuk status Blocked');refresh();return}const u=new Date().toISOString();persist({...x,status:t.value,updatedAt:u},false,{status:t.value,updatedAt:u});toast('Status diperbarui')}}
+});
+document.addEventListener('input',e=>{if(e.target.id==='q'){const v=e.target.value.trim();clearTimeout(window._qt);window._qt=setTimeout(()=>{f.q=v;refresh()},150)}});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')tryShut();
+  else if(e.key==='Enter'&&e.target.matches('tr[data-id]'))openDetail(e.target.dataset.id);
+  else if(!e.target.matches('input,select,textarea')&&!document.querySelector('.mb.on')){if(e.key==='/'){e.preventDefault();const q=$('#q');q&&q.focus()}else if(e.key==='n'&&canWrite)openForm()}
+});
+$('#add').onclick=()=>openForm();$('#csv').onclick=exportCsv;$('#prn').onclick=()=>window.print();
+$('#hb').onclick=()=>$('#side').classList.add('on');$('#scrim').onclick=()=>$('#side').classList.remove('on');
+init();
+</script>
 </body>
 </html>
